@@ -1,0 +1,266 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+Extending capillary pressure
+\end_layout
+
+\begin_layout Standard
+The capillary pressure relation for drainage reads
+\begin_inset Formula 
+\[
+p_{c}=p_{ce}\left(\frac{S_{w}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda},
+\]
+
+\end_inset
+
+and the capillary pressure at zero water saturation is 
+\begin_inset Formula $p_{c}^{0}$
+\end_inset
+
+, which is a large number, e.g., 10
+\begin_inset Formula $^{9}$
+\end_inset
+
+ Pa.
+ We draw a tangent from [
+\begin_inset Formula $S_{w},p_{c}^{0}$
+\end_inset
+
+]=[0,
+\begin_inset Formula $p_{c}^{0}$
+\end_inset
+
+] to the capillary pressure curve above which touches the curve at [
+\begin_inset Formula $S_{w}^{*},p_{c}^{*}$
+\end_inset
+
+], i.e.,
+\begin_inset Formula 
+\[
+p_{c}^{*}-p_{c}^{0}=\frac{-S_{w}^{*}}{\lambda}\frac{p_{ce}}{1-S_{w}^{c}}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda-1},
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+p_{c}^{*}=p_{ce}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda},
+\]
+
+\end_inset
+
+or by subtracting
+\begin_inset Formula 
+\[
+p_{ce}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda}+\frac{S_{w}^{*}}{\lambda}\frac{p_{ce}}{1-S_{w}^{c}}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda-1}-p_{c}^{0}=0
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+p_{ce}+\frac{S_{w}^{*}}{\lambda}\frac{p_{ce}}{1-S_{w}^{c}}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1}-p_{c}^{0}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{1/\lambda}=0
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If I divide the equations, I obtain:
+\begin_inset Formula 
+\[
+\frac{p_{c}^{*}-p_{c}^{0}}{p_{c}^{*}S_{w}^{*}}=\frac{-1}{\lambda}\frac{1}{1-S_{w}^{c}}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Let's approach the problem this way:
+\begin_inset Formula 
+\[
+\left(1-S_{wc}\right)exp\left(-\lambda\text{ln}\left(\frac{p_{c}}{p_{ce}}\right)\right)+S_{wc}=S_{w}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Another one:
+\begin_inset Formula 
+\[
+\frac{dln\left(p_{c}\right)}{dS_{w}}=-\frac{1}{\lambda}\frac{1}{S_{w}-S_{wc}},
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{dln\left(p_{c}\right)}{dS_{w}}=\frac{ln(p_{c}^{*})-ln(p_{c}^{0})}{S_{w}^{*}}.
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+ln(p_{c}^{*})-ln(p_{c}^{0})=-\frac{S_{w}^{*}}{\lambda}\frac{1}{S_{w}^{*}-S_{wc}}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+lnp_{c}^{*}-lnp_{ce}=-\frac{1}{\lambda}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{1}{\left(1-S_{wc}\right)}\left(S_{w}^{*}-S_{wc}\right)^{2}+\left(-1+\lambda ln\frac{p_{c}^{0}}{p_{ce}}\right)\left(S_{w}^{*}-S_{wc}\right)-S_{wc}=0
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\Delta=\left(-1+\lambda ln\frac{p_{c}^{0}}{p_{ce}}\right)^{2}+\frac{4S_{wc}}{1-S_{wc}}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+S_{w}^{*}=\frac{+1-\lambda ln\frac{p_{c}^{0}}{p_{ce}}\pm\sqrt{\Delta}}{2}\left(1-S_{wc}\right)
+\]
+
+\end_inset
+
+The negative sign gives a negative value for 
+\begin_inset Formula $S_{w}^{*}$
+\end_inset
+
+, therefore the final answer is
+\begin_inset Formula 
+\[
+S_{w}^{*}=S_{wc}+\frac{+1-\lambda ln\frac{p_{c}^{0}}{p_{ce}}+\sqrt{\left(-1+\lambda ln\frac{p_{c}^{0}}{p_{ce}}\right)^{2}+\frac{4S_{wc}}{1-S_{wc}}}}{2}\left(1-S_{wc}\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+p_{c}=\begin{cases}
+p_{ce}\left(\frac{S_{w}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda}, & S_{w}>S_{w}^{*}\\
+\text{exp}\left(\frac{\text{ln}p_{c}^{*}-\text{ln}p_{c}^{0}}{S_{w}^{*}}\left(S_{w}-S_{w}^{*}\right)+\text{ln}p_{c}^{*}\right), & S_{w}\leq S_{w}^{*}
+\end{cases}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{lnp_{c}^{*}-lnp_{c}^{0}}{S_{w}^{*}}=\frac{lnp_{c}^{*}-lnp_{c}}{S_{w}^{*}-S_{w}}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+lnp_{c}=\frac{lnp_{c}^{*}-lnp_{c}^{0}}{S_{w}^{*}}\left(S_{w}-S_{w}^{*}\right)+lnp_{c}^{*}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document

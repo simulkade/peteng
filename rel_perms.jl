@@ -66,6 +66,43 @@ function dkrwdsw(sw::Real, krw0::Real, sor::Real, swc::Real, nw::Real)
   return res
 end
 
+"""
+capillary pressure curve for drainage
+"""
+function pc_drain(sw::Real, labda::Real, pce::Real, swc::Real)
+  pc0=1.0e9
+  sw0=swc+(1-labda*log(pc0/pce)+sqrt((-1+labda*log(pc0/pce))^2+4*swc/(1-swc)))/2*(1-swc)
+  if sw>sw0
+    res=pce*((sw-swc)/(1-swc))^(-1.0/labda)
+  elseif 0.0<=sw<=sw0
+    pcs=pce*((sw0-swc)/(1-swc))^(-1.0/labda)
+    res=exp((log(pcs)-log(pc0))/sw0*(sw-sw0)+log(pcs))
+  elseif sw<0
+    res=pc0
+  else
+    res=0.0
+  end
+end
+
+function dpc_drain(sw::Real, labda::Real, pce::Real, swc::Real)
+  pc0=1.0e9
+  sw0=swc+(1-labda*log(pc0/pce)+sqrt((-1+labda*log(pc0/pce))^2+4*swc/(1-swc)))/2*(1-swc)
+  if sw>sw0
+    res=-1.0/labda*pce*((sw-swc)/(1-swc))^(-1.0/labda-1)
+  elseif 0.0<=sw<=sw0
+    res=-1.0/labda*pce*((sw0-swc)/(1-swc))^(-1.0/labda-1)
+  else
+    res=0.0
+  end
+end
+
+function pc_imb(sw::Real, labda::Real, pce::Real, swc::Real, sor::Real;
+  teta::Real=0.785, b::Real=0.6)
+  pc1=pc_drain(sw, labda, pce, swc)
+  pc2=pc_drain(1-sw, labda, pce, sor)
+  return (0.5*(1+cos(teta)))^b*pc1-(0.5*(1-cos(teta)))^b*pc2
+end
+
 # all rel-perm functions for array Inputs -------------------------------------
 function sws{T<:Real}(sw::Array{T}, sor::Array{T}, swc::Array{T})
   res=zeros(size(sw))
