@@ -107,7 +107,7 @@ and the capillary pressure at zero water saturation is
 ], i.e.,
 \begin_inset Formula 
 \[
-\frac{p_{c}^{*}-p_{c}^{0}}{S_{w}^{*}}=\frac{-1}{\lambda}\frac{p_{ce}}{1-S_{w}^{c}}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda-1},
+p_{c}^{*}-p_{c}^{0}=\frac{-S_{w}^{*}}{\lambda}\frac{p_{ce}}{1-S_{w}^{c}}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda-1},
 \]
 
 \end_inset
@@ -115,7 +115,35 @@ and the capillary pressure at zero water saturation is
 
 \begin_inset Formula 
 \[
-p_{c}^{*}=p_{ce}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda}.
+p_{c}^{*}=p_{ce}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda},
+\]
+
+\end_inset
+
+or by subtracting
+\begin_inset Formula 
+\[
+p_{ce}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda}+\frac{S_{w}^{*}}{\lambda}\frac{p_{ce}}{1-S_{w}^{c}}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda-1}-p_{c}^{0}=0
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+p_{ce}+\frac{S_{w}^{*}}{\lambda}\frac{p_{ce}}{1-S_{w}^{c}}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1}-p_{c}^{0}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{1/\lambda}=0
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+If I divide the equations, I obtain:
+\begin_inset Formula 
+\[
+\frac{p_{c}^{*}-p_{c}^{0}}{p_{c}^{*}S_{w}^{*}}=\frac{-1}{\lambda}\frac{1}{1-S_{w}^{c}}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1}
 \]
 
 \end_inset
@@ -127,7 +155,106 @@ p_{c}^{*}=p_{ce}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda}.
 Let's approach the problem this way:
 \begin_inset Formula 
 \[
-ln\left(\frac{p_{c}}{p_{ce}}\right)
+\left(1-S_{wc}\right)exp\left(-\lambda\text{ln}\left(\frac{p_{c}}{p_{ce}}\right)\right)+S_{wc}=S_{w}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Another one:
+\begin_inset Formula 
+\[
+\frac{dln\left(p_{c}\right)}{dS_{w}}=-\frac{1}{\lambda}\frac{1}{S_{w}-S_{wc}},
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{dln\left(p_{c}\right)}{dS_{w}}=\frac{ln(p_{c}^{*})-ln(p_{c}^{0})}{S_{w}^{*}}.
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+ln(p_{c}^{*})-ln(p_{c}^{0})=-\frac{S_{w}^{*}}{\lambda}\frac{1}{S_{w}^{*}-S_{wc}}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+lnp_{c}^{*}-lnp_{ce}=-\frac{1}{\lambda}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{1}{\left(1-S_{wc}\right)}\left(S_{w}^{*}-S_{wc}\right)^{2}+\left(-1+\lambda ln\frac{p_{c}^{0}}{p_{ce}}\right)\left(S_{w}^{*}-S_{wc}\right)-S_{wc}=0
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\Delta=\left(-1+\lambda ln\frac{p_{c}^{0}}{p_{ce}}\right)^{2}+\frac{4S_{wc}}{1-S_{wc}}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+S_{w}^{*}=\frac{+1-\lambda ln\frac{p_{c}^{0}}{p_{ce}}\pm\sqrt{\Delta}}{2}\left(1-S_{wc}\right)
+\]
+
+\end_inset
+
+The negative sign gives a negative value for 
+\begin_inset Formula $S_{w}^{*}$
+\end_inset
+
+, therefore the final answer is
+\begin_inset Formula 
+\[
+S_{w}^{*}=S_{wc}+\frac{+1-\lambda ln\frac{p_{c}^{0}}{p_{ce}}+\sqrt{\left(-1+\lambda ln\frac{p_{c}^{0}}{p_{ce}}\right)^{2}+\frac{4S_{wc}}{1-S_{wc}}}}{2}\left(1-S_{wc}\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+p_{c}=\begin{cases}
+p_{ce}\left(\frac{S_{w}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda} & S_{w}>S_{w}^{*}\\
+ & S_{w}\leq S_{w}^{*}
+\end{cases}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{lnp_{c}^{*}-lnp_{c}^{0}}{S_{w}^{*}}=\frac{lnp_{c}^{*}-lnp_{c}}{S_{w}^{*}-S_{w}}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+lnp_{c}=\frac{lnp_{c}^{*}-lnp_{c}^{0}}{S_{w}^{*}}\left(S_{w}-S_{w}^{*}\right)+lnp_{c}^{*}.
 \]
 
 \end_inset

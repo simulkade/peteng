@@ -236,8 +236,8 @@ S_{w}^{*}=S_{wc}+\frac{+1-\lambda ln\frac{p_{c}^{0}}{p_{ce}}+\sqrt{\left(-1+\lam
 \begin_inset Formula 
 \[
 p_{c}=\begin{cases}
-p_{ce}\left(\frac{S_{w}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda} & S_{w}>S_{w}^{*}\\
- & S_{w}\leq S_{w}^{*}
+p_{ce}\left(\frac{S_{w}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda}, & S_{w}>S_{w}^{*}\\
+\text{exp}\left(\frac{\text{ln}p_{c}^{*}-\text{ln}p_{c}^{0}}{S_{w}^{*}}\left(S_{w}-S_{w}^{*}\right)+\text{ln}p_{c}^{*}\right), & S_{w}\leq S_{w}^{*}
 \end{cases}
 \]
 
