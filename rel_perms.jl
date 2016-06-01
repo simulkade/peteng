@@ -103,6 +103,13 @@ function pc_imb(sw::Real, labda::Real, pce::Real, swc::Real, sor::Real;
   return (0.5*(1+cos(teta)))^b*pc1-(0.5*(1-cos(teta)))^b*pc2
 end
 
+function dpc_imb(sw::Real, labda::Real, pce::Real, swc::Real, sor::Real;
+  teta::Real=0.785, b::Real=0.6)
+  dpc1=dpc_drain(sw, labda, pce, swc)
+  dpc2=dpc_drain(1-sw, labda, pce, sor)
+  return (0.5*(1+cos(teta)))^b*dpc1-(0.5*(1-cos(teta)))^b*dpc2
+end
+
 # all rel-perm functions for array Inputs -------------------------------------
 function sws{T<:Real}(sw::Array{T}, sor::Array{T}, swc::Array{T})
   res=zeros(size(sw))
@@ -140,6 +147,40 @@ function dkrwdsw{T<:Real}(sw::Array{T}, krw0::Array{T}, sor::Array{T}, swc::Arra
   res=zeros(size(sw))
   for i in eachindex(sw)
     res[i]=dkrwdsw(sw[i], krw0[i], sor[i], swc[i], nw[i])
+  end
+  return res
+end
+
+function pc_drain{T<:Array{T}}(sw::Array{T}, labda::Array{T}, pce::Array{T}, swc::Array{T})
+  res=zeros(size(sw))
+  for i in eachindex(sw)
+    res[i]=pc_drain(sw[i], labda[i], pce[i], swc[i])
+  end
+  return res
+end
+
+function dpc_drain(sw::Array{T}, labda::Array{T}, pce::Array{T}, swc::Array{T})
+  res=zeros(size(sw))
+  for i in eachindex(sw)
+    res[i]=dpc_drain(sw[i], labda[i], pce[i], swc[i])
+  end
+  return res
+end
+
+function pc_imb(sw::Array{T}, labda::Array{T}, pce::Array{T}, swc::Array{T}, sor::Array{T},
+  teta::Array{T}; b::Real=0.6)
+  res=zeros(size(sw))
+  for i in eachindex(sw)
+    res[i]=pc_imb(sw[i], labda[i], pce[i], swc[i], sor[i], teta[i], b)
+  end
+  return res
+end
+
+function dpc_imb(sw::Array{T}, labda::Array{T}, pce::Array{T}, swc::Array{T}, sor::Array{T},
+  teta::Array{T}; b::Real=0.6)
+  res=zeros(size(sw))
+  for i in eachindex(sw)
+    res[i]=dpc_imb(sw[i], labda[i], pce[i], swc[i], sor[i], teta[i], b)
   end
   return res
 end
