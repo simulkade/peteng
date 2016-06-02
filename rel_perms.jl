@@ -88,9 +88,9 @@ function dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4)
   pc0=1.0e9
   sw0=swc+(1-labda*log(pc0/pce)+sqrt((-1+labda*log(pc0/pce))^2+4*swc/(1-swc)))/2*(1-swc)
   if sw>sw0
-    res=-1.0/labda*pce*((sw-swc)/(1-swc))^(-1.0/labda-1)
+    res=-1.0/((1-swc)*labda)*pce*((sw-swc)/(1-swc))^(-1.0/labda-1)
   elseif 0.0<=sw<=sw0
-    res=-1.0/labda*pce*((sw0-swc)/(1-swc))^(-1.0/labda-1)
+    res=-1.0/((1-swc)*labda)*pce*((sw0-swc)/(1-swc))^(-1.0/labda-1)
   else
     res=0.0
   end
@@ -106,7 +106,7 @@ end
 function dpc_imb(sw::Real, pce::Real, swc::Real, sor::Real; teta::Real=0.785, labda::Real=2.4, b::Real=0.6)
   dpc1=dpc_drain(sw, pce, swc, labda=labda)
   dpc2=dpc_drain(1-sw, pce, sor, labda=labda)
-  return (0.5*(1+cos(teta)))^b*dpc1-(0.5*(1-cos(teta)))^b*dpc2
+  return (0.5*(1+cos(teta)))^b*dpc1+(0.5*(1-cos(teta)))^b*dpc2
 end
 
 # all rel-perm functions for array Inputs -------------------------------------
