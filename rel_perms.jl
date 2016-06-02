@@ -69,7 +69,7 @@ end
 """
 capillary pressure curve for drainage
 """
-function pc_drain(sw::Real, labda::Real, pce::Real, swc::Real)
+function pc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4)
   pc0=1.0e9
   sw0=swc+(1-labda*log(pc0/pce)+sqrt((-1+labda*log(pc0/pce))^2+4*swc/(1-swc)))/2*(1-swc)
   if sw>sw0
@@ -84,7 +84,7 @@ function pc_drain(sw::Real, labda::Real, pce::Real, swc::Real)
   end
 end
 
-function dpc_drain(sw::Real, labda::Real, pce::Real, swc::Real)
+function dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4)
   pc0=1.0e9
   sw0=swc+(1-labda*log(pc0/pce)+sqrt((-1+labda*log(pc0/pce))^2+4*swc/(1-swc)))/2*(1-swc)
   if sw>sw0
@@ -96,17 +96,16 @@ function dpc_drain(sw::Real, labda::Real, pce::Real, swc::Real)
   end
 end
 
-function pc_imb(sw::Real, labda::Real, pce::Real, swc::Real, sor::Real;
-  teta::Real=0.785, b::Real=0.6)
-  pc1=pc_drain(sw, labda, pce, swc)
-  pc2=pc_drain(1-sw, labda, pce, sor)
+function pc_imb(sw::Real, pce::Real, swc::Real, sor::Real;
+  teta::Real=0.785, labda::Real=2.4, b::Real=0.6)
+  pc1=pc_drain(sw, pce, swc, labda=labda)
+  pc2=pc_drain(1-sw, pce, sor, labda=labda)
   return (0.5*(1+cos(teta)))^b*pc1-(0.5*(1-cos(teta)))^b*pc2
 end
 
-function dpc_imb(sw::Real, labda::Real, pce::Real, swc::Real, sor::Real;
-  teta::Real=0.785, b::Real=0.6)
-  dpc1=dpc_drain(sw, labda, pce, swc)
-  dpc2=dpc_drain(1-sw, labda, pce, sor)
+function dpc_imb(sw::Real, pce::Real, swc::Real, sor::Real; teta::Real=0.785, labda::Real=2.4, b::Real=0.6)
+  dpc1=dpc_drain(sw, pce, swc, labda=labda)
+  dpc2=dpc_drain(1-sw, pce, sor, labda=labda)
   return (0.5*(1+cos(teta)))^b*dpc1-(0.5*(1-cos(teta)))^b*dpc2
 end
 
@@ -151,36 +150,36 @@ function dkrwdsw{T<:Real}(sw::Array{T}, krw0::Array{T}, sor::Array{T}, swc::Arra
   return res
 end
 
-function pc_drain{T<:Array{T}}(sw::Array{T}, labda::Array{T}, pce::Array{T}, swc::Array{T})
+function pc_drain{T<:Real}(sw::Array{T}, pce::Array{T}, swc::Array{T}; labda::Real=2.4)
   res=zeros(size(sw))
   for i in eachindex(sw)
-    res[i]=pc_drain(sw[i], labda[i], pce[i], swc[i])
+    res[i]=pc_drain(sw[i], pce[i], swc[i], labda=labda)
   end
   return res
 end
 
-function dpc_drain(sw::Array{T}, labda::Array{T}, pce::Array{T}, swc::Array{T})
+function dpc_drain{T<:Real}(sw::Array{T}, pce::Array{T}, swc::Array{T}; labda::Real=2.4)
   res=zeros(size(sw))
   for i in eachindex(sw)
-    res[i]=dpc_drain(sw[i], labda[i], pce[i], swc[i])
+    res[i]=dpc_drain(sw[i], pce[i], swc[i], labda=labda)
   end
   return res
 end
 
-function pc_imb(sw::Array{T}, labda::Array{T}, pce::Array{T}, swc::Array{T}, sor::Array{T},
-  teta::Array{T}; b::Real=0.6)
+function pc_imb{T<:Real}(sw::Array{T}, pce::Array{T}, swc::Array{T}, sor::Array{T},
+  teta::Array{T}; labda::Real=2.4, b::Real=0.6)
   res=zeros(size(sw))
   for i in eachindex(sw)
-    res[i]=pc_imb(sw[i], labda[i], pce[i], swc[i], sor[i], teta[i], b)
+    res[i]=pc_imb(sw[i], pce[i], swc[i], sor[i], teta=teta[i], labda=labda, b=b)
   end
   return res
 end
 
-function dpc_imb(sw::Array{T}, labda::Array{T}, pce::Array{T}, swc::Array{T}, sor::Array{T},
-  teta::Array{T}; b::Real=0.6)
+function dpc_imb{T<:Real}(sw::Array{T}, pce::Array{T}, swc::Array{T}, sor::Array{T},
+  teta::Array{T}; labda::Real=2.4, b::Real=0.6)
   res=zeros(size(sw))
   for i in eachindex(sw)
-    res[i]=dpc_imb(sw[i], labda[i], pce[i], swc[i], sor[i], teta[i], b)
+    res[i]=dpc_imb(sw[i], pce[i], swc[i], sor[i], teta=teta[i], labda=labda, b=b)
   end
   return res
 end
