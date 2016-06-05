@@ -236,8 +236,8 @@ S_{w}^{*}=S_{wc}+\frac{+1-\lambda ln\frac{p_{c}^{0}}{p_{ce}}+\sqrt{\left(-1+\lam
 \begin_inset Formula 
 \[
 p_{c}=\begin{cases}
-p_{ce}\left(\frac{S_{w}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda} & S_{w}>S_{w}^{*}\\
- & S_{w}\leq S_{w}^{*}
+p_{ce}\left(\frac{S_{w}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda}, & S_{w}>S_{w}^{*}\\
+\text{exp}\left(\frac{\text{ln}p_{c}^{*}-\text{ln}p_{c}^{0}}{S_{w}^{*}}\left(S_{w}-S_{w}^{*}\right)+\text{ln}p_{c}^{*}\right), & S_{w}\leq S_{w}^{*}
 \end{cases}
 \]
 
@@ -255,6 +255,47 @@ p_{ce}\left(\frac{S_{w}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda} & S_{w}>S_{w}^{*}\
 \begin_inset Formula 
 \[
 lnp_{c}=\frac{lnp_{c}^{*}-lnp_{c}^{0}}{S_{w}^{*}}\left(S_{w}-S_{w}^{*}\right)+lnp_{c}^{*}.
+\]
+
+\end_inset
+
+The imbibition capillary pressure function is defined as
+\begin_inset Formula 
+\[
+p_{c}=p_{ce}\left[\left(\frac{1+\cos\theta}{2}\right)^{b}\left(\frac{S_{w}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda}-\left(\frac{1-\cos\theta}{2}\right)^{b}\left(\frac{1-S_{w}-S_{wc}}{1-S_{or}}\right)^{-1/\lambda}\right].
+\]
+
+\end_inset
+
+The liquid saturation at which the capillary pressure is zero can be calculated
+ by
+\begin_inset Formula 
+\[
+\left(1+\cos\theta\right)^{b}\left(\frac{S_{w}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda}=\left(1-\cos\theta\right)^{b}\left(\frac{1-S_{w}-S_{wc}}{1-S_{or}}\right)^{-1/\lambda}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left(1-S_{w}-S_{wc}\right)\left(1-S_{wc}\right)-\left[\frac{1-\cos\theta}{1+\cos\theta}\right]^{b\lambda}\left(S_{w}-S_{wc}\right)\left(1-S_{or}\right)=0
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+S_{w}\left[-\left(1-S_{wc}\right)-\left[\frac{1-\cos\theta}{1+\cos\theta}\right]^{b\lambda}\left(1-S_{or}\right)\right]+\left(1-S_{wc}\right)^{2}+S_{wc}\left[\frac{1-\cos\theta}{1+\cos\theta}\right]^{b\lambda}\left(1-S_{or}\right)
+\]
+
+\end_inset
+
+which gives
+\begin_inset Formula 
+\[
+S_{w,p_{c}=0}=\frac{\left(1-S_{wc}\right)^{2}+S_{wc}\left[\frac{1-\cos\theta}{1+\cos\theta}\right]^{b\lambda}\left(1-S_{or}\right)}{\left(1-S_{wc}\right)+\left[\frac{1-\cos\theta}{1+\cos\theta}\right]^{b\lambda}\left(1-S_{or}\right)}
 \]
 
 \end_inset
