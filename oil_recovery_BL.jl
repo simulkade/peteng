@@ -46,9 +46,31 @@ plot!(sw_plot_ww, kro.(sw_plot_ww, kro0_ww, sor_ww, swc_ww, no_ww),
 
 # plot the recovery factors for a water-wet, a mixed-wet, and an oil-wet system
 include("frac_flow_funcs.jl")
-(xt_shock, sw_shock, xt_prf, sw_prf, t, p_inj, R_oil)=frac_flow_wf(muw=1e-3,
-  muo=2e-3, ut=1e-4, phi=0.2,
-  k=1e-12, swc=0.09, sor=0.12, kro0=0.76, no=2.0, krw0=1.0,
-  nw=2.4, sw0=0.09, sw_inj=1.0, L=1, pv_inj=5)
+L_res=1000 # m
+perm_res=0.001e-12 # Darcy
+inj_pv=5.0 # pore volumes
+poros_res=0.35 # reservoir porosity
+inj_vel=1.0/(3600*24) # m/s
+mu_oil=2e-3 # oil viscosity
+mu_water=1e-3 # water viscosity
 
+# water-wet reservoir
+(xt_shock_ww, sw_shock_ww, xt_prf_ww, sw_prf_ww, t_ww, p_inj_ww, R_oil_ww)=
+frac_flow_wf(muw=mu_water, muo=mu_oil, ut=inj_vel, phi=poros_res,
+  k=perm_res, swc=swc_ww, sor=sor_ww, kro0=kro0_ww, no=no_ww, krw0=krw0_ww,
+  nw=nw_ww, sw0=swc_ww, sw_inj=1.0, L=L_res, pv_inj=inj_pv)
+
+(xt_shock_ow, sw_shock_ow, xt_prf_ow, sw_prf_ow, t_ow, p_inj_ow, R_oil_ow)=
+frac_flow_wf(muw=mu_water, muo=mu_oil, ut=inj_vel, phi=poros_res,
+  k=perm_res, swc=swc_ow, sor=sor_ow, kro0=kro0_ow, no=no_ow, krw0=krw0_ow,
+  nw=nw_ow, sw0=swc_ow, sw_inj=1.0, L=L_res, pv_inj=inj_pv)
+
+plot(t_ow/(24*3600), R_oil_ow, size=(400,300), linecolor=:black, linewidth=2,
+  xtickfont = font(10, "Courier"), ytickfont=font(10, "Courier"),
+  xlabel="time [day]", ylabel="Recovery factor", label="Oil-wet",
+  legendfont=font(10, "Courier"), guidefont=font(12, "Courier"), ylims=(0.0,1.0))
+savefig("recovery_time_ow.png")
+plot!(t_ww/(24*3600), R_oil_ww, linecolor=:blue, label="Water-wet", linewidth=2,
+  linestyle=:dash)
+savefig("recovery_time_ww_ow.png")
 # plot(t, R_oil)

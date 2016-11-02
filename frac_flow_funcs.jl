@@ -67,14 +67,14 @@ function frac_flow_wf(;muw=1e-3, muo=2e-5, ut=1e-5, phi=0.2,
   xt_shock = ut/phi*dfw(sw_shock)
   xt_prf=[xt_s1; xt_shock; xt_shock+eps(); 2*xt_shock]
   sw_prf=[s1; sw_shock; sw0; sw0]
-  println(xt_prf)
-  print(sw_shock)
+  # println(xt_prf)
+  # print(sw_shock)
 # Go through the data first
   i=1
   while(true)
     if (i+1)==length(xt_prf)
       break
-    elseif xt_prf[i]==xt_prf[i+1]
+    elseif xt_prf[i]>=xt_prf[i+1]
       deleteat!(xt_prf, i+1)
       deleteat!(sw_prf, i+1)
     else
