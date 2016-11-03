@@ -70,7 +70,7 @@ end
 capillary pressure curve for drainage
 """
 function pc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4)
-  pc0=1.0e6
+  pc0=1.0e7
   sw0=swc+(1-labda*log(pc0/pce)+sqrt((-1+labda*log(pc0/pce))^2+4*swc/(1-swc)))/2*(1-swc)
   if sw>sw0
     res=pce*((sw-swc)/(1-swc))^(-1.0/labda)
@@ -85,7 +85,7 @@ function pc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4)
 end
 
 function dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4)
-  pc0=1.0e6
+  pc0=1.0e7
   sw0=swc+(1-labda*log(pc0/pce)+sqrt((-1+labda*log(pc0/pce))^2+4*swc/(1-swc)))/2*(1-swc)
   if sw>sw0
     res=-1.0/((1-swc)*labda)*pce*((sw-swc)/(1-swc))^(-1.0/labda-1)

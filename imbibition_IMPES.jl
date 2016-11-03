@@ -7,8 +7,8 @@
 ## define the geometry
 """
 function imb_impes()
-Nx = 20 # number of cells in x direction
-Ny = 50 # number of cells in y direction
+Nx = 15 # number of cells in x direction
+Ny = 40 # number of cells in y direction
 W = 0.02 # [m] length of the domain in x direction
 H = 0.07 # [m] length of the domain in y direction
 # m = createMesh1D(Nx, W)
@@ -16,8 +16,8 @@ m = createMeshCylindrical2D(Nx, Ny, W, H) # creates a 2D mesh
 ## define the physical parametrs
 # all the Corey-type relperm parametrs are defined for the oil-wet and water-wet
 # cases
-k0 = 0.01e-12 # [m^2] average reservoir permeability
-phi0 = 0.45 # average porosity
+k0 = 0.001e-12 # [m^2] average reservoir permeability
+phi0 = 0.35 # average porosity
 mu_oil = 2e-3 # [Pa.s] oil viscosity
 mu_water = 1e-3 # [Pa.s] water viscosity
 krw0_ww = 0.3
@@ -37,8 +37,8 @@ teta_ww=deg2rad(20)
 gama_ow=0.03 # N/m
 labda=2.4 # for Ekofisk chalk
 r_ave=sqrt(k0/phi0) #  meter average pore diameter
-pce0=2*gama_ow*cos(teta_ww)/r_ave/10 # Pa capillary entry pressure
-SF0=0.0
+pce0= 5e2 #2*gama_ow*cos(teta_ww)/r_ave/10 # Pa capillary entry pressure
+SF0=1.0
 SF=createFaceVariable(m, SF0) # 1 is water wet, 0 is oil wet
 krw0=krw0_ww*SF+krw0_ow*(1-SF)
 kro0=kro0_ww*SF+kro0_ow*(1-SF)
@@ -105,7 +105,7 @@ BCs.bottom.c[:]=sw_b
 # dt = 1000 # [s] time step
 # dt=(W/Nx)/u_in/20 # [s]
 dt=1
-t_end = 10*3600*24 # [s] final time
+t_end = 50*3600*24 # [s] final time
 eps_p = 1e-7 # pressure accuracy
 eps_sw = 1e-7 # saturation accuracy
 ## define the variables
@@ -122,7 +122,7 @@ rec_fact=zeros(1)
 t_day=zeros(1)
 t = 0.0
 dt0=dt
-dsw_alwd= 0.001
+dsw_alwd= 0.01
 dp_alwd= 100.0 # Pa
 # prog_1=ProgressThresh(t_end)
 while (t<t_end)
@@ -139,7 +139,7 @@ while (t<t_end)
         sw_face = upwindMean(sw, -pgrad) # average value of water saturation
         sw_grad=gradientTerm(sw)
         sw_ave=arithmeticMean(sw)
-        pcgrad=faceEval(dpc_imb, sw_ave, pce, swc, sor, teta)
+        pcgrad=faceEval(dpc_imb, sw_ave, pce, swc, sor, teta).*sw_grad
         # solve for pressure at known Sw
         labdao = lo.*faceEval(kro, sw_face, kro0, sor, swc, no)
         labdaw = lw.*faceEval(krw, sw_face, krw0, sor, swc, nw)
@@ -176,7 +176,7 @@ while (t<t_end)
             sw = copyCell(sw_new)
             p_old = copyCell(p)
             sw_old = copyCell(sw)
-            dt=min(dt*(dsw_alwd/error_sw), 10*dt)
+            dt=min(dt*(dsw_alwd/error_sw), 15*dt)
             break
         end
     end
@@ -191,4 +191,5 @@ while (t<t_end)
     # ylabel('recovery factor')
     # title([num2str(t/3600/24) ' day']) drawnow
 end
+t_day, rec_fact
 end # imb_impes

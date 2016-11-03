@@ -26,6 +26,9 @@ sor_ww=0.1
 sor_ow=0.12
 swc_ww=0.09
 swc_ow=0.09
+teta_ow=deg2rad(130)
+teta_ww=deg2rad(20)
+
 SF=0.0 # 1.0 is water-wet, 0.0 is oil-wet
 sw_plot_ow=linspace(swc_ow,1-sor_ow,100)
 sw_plot_ww=linspace(swc_ww,1-sor_ww,100)
@@ -69,8 +72,29 @@ plot(t_ow/(24*3600), R_oil_ow, size=(400,300), linecolor=:black, linewidth=2,
   xtickfont = font(10, "Courier"), ytickfont=font(10, "Courier"),
   xlabel="time [day]", ylabel="Recovery factor", label="Oil-wet",
   legendfont=font(10, "Courier"), guidefont=font(12, "Courier"), ylims=(0.0,1.0))
-savefig("recovery_time_ow.png")
+# savefig("recovery_time_ow.png")
 plot!(t_ww/(24*3600), R_oil_ww, linecolor=:blue, label="Water-wet", linewidth=2,
   linestyle=:dash)
-savefig("recovery_time_ww_ow.png")
+# savefig("recovery_time_ww_ow.png")
 # plot(t, R_oil)
+# plot the imbibition Pc-Sw curve for different SF
+plot(size=(500,400), xtickfont = font(10, "Courier"), ytickfont=font(10, "Courier"),
+  xlabel="Sw", ylabel="Pc [Pa]", legendfont=font(10, "Courier"),
+  guidefont=font(12, "Courier"))
+for SF in 0.0:0.25:1.0
+  krw0=krw0_ww*SF+krw0_ow*(1-SF)
+  kro0=kro0_ww*SF+kro0_ow*(1-SF)
+  sor=sor_ww*SF+sor_ow*(1-SF)
+  swc=swc_ww*SF+swc_ow*(1-SF)
+  no= no_ww*SF+no_ow*(1-SF)
+  nw= nw_ww*SF+nw_ow*(1-SF)
+  teta=teta_ww*SF+teta_ow*(1-SF)
+  pce= 5e2
+  sw_plot=linspace(0.0,1.0,100)
+
+  pc=pc_imb.(sw_plot, pce, swc, sor, teta=teta)
+  plot!(sw_plot, pc, xlims=(0.0,1.0), ylims=(-2000, 2000), linewidth=2,
+  label=string(SF))
+end
+plot!()
+# load and plot the imbibition data
