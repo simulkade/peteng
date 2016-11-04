@@ -1,12 +1,12 @@
 """
-# Imbibition cell, IMPES
-# Buckley Leverett equation
-# dependent variables: pressure and water saturation
-# Prepared for educational purposes by ** AAE **
-# load peteng relperm files before running this function
-## define the geometry
+Imbibition cell, IMPES
+Buckley Leverett equation
+dependent variables: pressure and water saturation
+Prepared for educational purposes by ** AAE **
+The only input variable is 0<=SF0<=1,
+is the degree of wettability
 """
-function imb_impes()
+function imb_impes(SF0)
 Nx = 15 # number of cells in x direction
 Ny = 40 # number of cells in y direction
 W = 0.02 # [m] length of the domain in x direction
@@ -28,25 +28,36 @@ nw_ww = 2.4
 nw_ow= 2.4
 no_ww = 2.0
 no_ow= 2.0
-sor_ww=0.1
-sor_ow=0.12
+sor_ww=0.15
+sor_ow=0.2
+sor_mw=0.08
 swc_ww=0.09
 swc_ow=0.09
-teta_ow=deg2rad(130)
-teta_ww=deg2rad(20)
+teta_ow=deg2rad(180)
+teta_ww=deg2rad(0)
+teta_mw=deg2rad(90)
+teta_prime=teta_mw-π/2 # see my report
+a=(sor_mw-0.5*(sor_ww-sor_ow)*cos(teta_mw)-0.5*(sor_ww+sor_ow))/(cos(teta_mw)^2-1)
+b=0.5*(sor_ww-sor_ow)
+c=0.5*(sor_ww+sor_ow)-a
+
 gama_ow=0.03 # N/m
 labda=2.4 # for Ekofisk chalk
 r_ave=sqrt(k0/phi0) #  meter average pore diameter
 pce0= 5e2 #2*gama_ow*cos(teta_ww)/r_ave/10 # Pa capillary entry pressure
-SF0=1.0
+# SF0=1.0
 SF=createFaceVariable(m, SF0) # 1 is water wet, 0 is oil wet
 krw0=krw0_ww*SF+krw0_ow*(1-SF)
 kro0=kro0_ww*SF+kro0_ow*(1-SF)
-sor=sor_ww*SF+sor_ow*(1-SF)
+# sor=sor_ww*SF+sor_ow*(1-SF)
 swc=swc_ww*SF+swc_ow*(1-SF)
 no= no_ww*SF+no_ow*(1-SF)
 nw= nw_ww*SF+nw_ow*(1-SF)
-teta=teta_ww*SF+teta_ow*(1-SF)
+teta0=teta_ww*SF0+teta_ow*(1-SF0)
+# sor0=(sor_ow-sor_mw)*cos(teta0-teta_prime)^2+sor_mw
+sor0=a*cos(teta0)^2+b*cos(teta0)+c
+teta=createFaceVariable(m, teta0)
+sor=createFaceVariable(m, sor0)
 pce=createFaceVariable(m, pce0)
 
 p0 = 100e5 # [bar] pressure
