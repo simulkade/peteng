@@ -9,7 +9,7 @@ for SF in 0.1:0.2:0.9
   (t,R)=imb_impes(SF)
   save("imb_$SF-ww.jld", "t", t, "R", R)
   plot!(t/(24*3600), R, xlims=(0.0,50.0), ylims=(0, 1), linewidth=2,
-  label="$SF water-wet")
+  label="$SF Sal. Factor")
   savefig("imb_recovery_$SF-WW.png")
 end
 plot!()

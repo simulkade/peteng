@@ -197,7 +197,7 @@ while (t<t_end)
             sw = copyCell(sw_new)
             p_old = copyCell(p)
             sw_old = copyCell(sw)
-            dt=min(dt*(dsw_alwd/error_sw), 15*dt)
+            dt=min(dt*(dsw_alwd/error_sw), 15*dt, t_end-t-eps())
             break
         end
     end

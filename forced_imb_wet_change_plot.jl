@@ -19,6 +19,7 @@ for SF0 in 0.1:0.2:0.9
   t_plot=t_plot[end]+t
   R_plot=R_plot[end]+R*(1-R_plot[end])
   Plots.plot!(t_plot, R_plot, ylims=(0.0,1.0), linewidth=2,
-  label="$SF0 water-wet")
+  label="$SF0 Sal. Factor")
 end
 Plots.plot!()
+Plots.savefig("forced_imb_multiple_sal.png")

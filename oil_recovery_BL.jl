@@ -103,7 +103,7 @@ for SF in 0.0:0.25:1.0
     nw=nw, sw0=swc, sw_inj=1.0, L=L_res, pv_inj=inj_pv)
     plot!(t/(24*3600), R_oil, size=(500,400), linewidth=2,
       xtickfont = font(10, "Courier"), ytickfont=font(10, "Courier"),
-      xlabel="time [day]", ylabel="Recovery factor", label="$SF water-wet",
+      xlabel="time [day]", ylabel="Recovery factor", label="$SF Sal. Factor",
       legendfont=font(10, "Courier"), guidefont=font(12, "Courier"), ylims=(0.0,1.0))
     savefig("recovery_forced_imb_$SF-WW.png")
 end
@@ -130,7 +130,7 @@ for SF in 0.1:0.2:0.9
 
   pc=pc_imb.(sw_plot, pce, swc, sor, teta=teta)
   plot!(sw_plot, pc, xlims=(0.0,1.0), ylims=(-2000, 2000), linewidth=2,
-  label="$SF water-wet")
+  label="$SF Sal. Factor")
   savefig("pc_sw_$SF-WW.png")
 end
 plot!()
