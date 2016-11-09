@@ -39,7 +39,10 @@ SF=0.0 # 1.0 is water-wet, 0.0 is oil-wet
 sw_plot_ow=linspace(swc_ow,1-sor_ow,100)
 sw_plot_ww=linspace(swc_ww,1-sor_ww,100)
 
-plot(sw_plot_ow, krw.(sw_plot_ow, krw0_ow, sor_ow, swc_ow, nw_ow),
+plot(size=(500,400), xtickfont = font(10, "Courier"), ytickfont=font(10, "Courier"),
+  ylabel="krw, kro", xlabel="Water saturation", legendfont=font(10, "Courier"),
+  guidefont=font(12, "Courier"))
+plot!(sw_plot_ow, krw.(sw_plot_ow, krw0_ow, sor_ow, swc_ow, nw_ow),
   xlims=(0.0,1.0), linewidth=3, linestyle=:dash, linecolor=:blue,
   label="krw, water-wet")
 plot!(sw_plot_ow, kro.(sw_plot_ow, kro0_ow, sor_ow, swc_ow, no_ow),
@@ -51,7 +54,7 @@ plot!(sw_plot_ww, krw.(sw_plot_ww, krw0_ww, sor_ww, swc_ww, nw_ww),
 plot!(sw_plot_ww, kro.(sw_plot_ww, kro0_ww, sor_ww, swc_ww, no_ww),
   xlims=(0.0,1.0), linewidth=1, linestyle=:solid, linecolor=:red,
   label="kro, oil-wet")
-
+savefig("two_rel_perms.png")
 
 # plot the recovery factors for a water-wet, a mixed-wet, and an oil-wet system
 include("frac_flow_funcs.jl")
