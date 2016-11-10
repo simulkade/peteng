@@ -39,21 +39,21 @@ SF=0.0 # 1.0 is water-wet, 0.0 is oil-wet
 sw_plot_ow=linspace(swc_ow,1-sor_ow,100)
 sw_plot_ww=linspace(swc_ww,1-sor_ww,100)
 
-plot(size=(500,400), xtickfont = font(10, "Courier"), ytickfont=font(10, "Courier"),
-  ylabel="krw, kro", xlabel="Water saturation", legendfont=font(10, "Courier"),
+plot(size=(500,400), xtickfont = font(12, "Courier"), ytickfont=font(12, "Courier"),
+  ylabel="krw, kro", xlabel="Water saturation", legendfont=font(12, "Courier"),
   guidefont=font(12, "Courier"))
 plot!(sw_plot_ow, krw.(sw_plot_ow, krw0_ow, sor_ow, swc_ow, nw_ow),
   xlims=(0.0,1.0), linewidth=3, linestyle=:dash, linecolor=:blue,
-  label="krw, water-wet")
+  label="krw, Oil-wet")
 plot!(sw_plot_ow, kro.(sw_plot_ow, kro0_ow, sor_ow, swc_ow, no_ow),
   xlims=(0.0,1.0), linewidth=3, linestyle=:solid, linecolor=:red,
-  label="kro, water-wet")
+  label="kro, Oil-wet")
 plot!(sw_plot_ww, krw.(sw_plot_ww, krw0_ww, sor_ww, swc_ww, nw_ww),
   xlims=(0.0,1.0), linewidth=1, linestyle=:dash, linecolor=:blue,
-  label="krw, oil-wet")
+  label="krw, Water-wet")
 plot!(sw_plot_ww, kro.(sw_plot_ww, kro0_ww, sor_ww, swc_ww, no_ww),
   xlims=(0.0,1.0), linewidth=1, linestyle=:solid, linecolor=:red,
-  label="kro, oil-wet")
+  label="kro, Water-wet")
 savefig("two_rel_perms.png")
 
 # plot the recovery factors for a water-wet, a mixed-wet, and an oil-wet system
