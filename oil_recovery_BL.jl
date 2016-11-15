@@ -43,16 +43,16 @@ plot(size=(500,400), xtickfont = font(12, "Courier"), ytickfont=font(12, "Courie
   ylabel="krw, kro", xlabel="Water saturation", legendfont=font(12, "Courier"),
   guidefont=font(12, "Courier"))
 plot!(sw_plot_ow, krw.(sw_plot_ow, krw0_ow, sor_ow, swc_ow, nw_ow),
-  xlims=(0.0,1.0), linewidth=3, linestyle=:dash, linecolor=:blue,
+  xlims=(0.0,1.0), linewidth=3, linestyle=:dash, linecolor=:red,
   label="krw, Oil-wet")
 plot!(sw_plot_ow, kro.(sw_plot_ow, kro0_ow, sor_ow, swc_ow, no_ow),
-  xlims=(0.0,1.0), linewidth=3, linestyle=:solid, linecolor=:red,
+  xlims=(0.0,1.0), linewidth=3, linestyle=:dash, linecolor=:red,
   label="kro, Oil-wet")
 plot!(sw_plot_ww, krw.(sw_plot_ww, krw0_ww, sor_ww, swc_ww, nw_ww),
-  xlims=(0.0,1.0), linewidth=1, linestyle=:dash, linecolor=:blue,
+  xlims=(0.0,1.0), linewidth=1, linestyle=:solid, linecolor=:blue,
   label="krw, Water-wet")
 plot!(sw_plot_ww, kro.(sw_plot_ww, kro0_ww, sor_ww, swc_ww, no_ww),
-  xlims=(0.0,1.0), linewidth=1, linestyle=:solid, linecolor=:red,
+  xlims=(0.0,1.0), linewidth=1, linestyle=:solid, linecolor=:blue,
   label="kro, Water-wet")
 savefig("two_rel_perms.png")
 
