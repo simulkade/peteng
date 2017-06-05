@@ -142,8 +142,8 @@ obj_fun = (param, grad) -> objective_function(param::Vector{Float64}, grad::Vect
 # x_ub = [0.5, 1.0, 1.0, 5.0, 5.0]
 
 x_init = copy(param_all)
-x_lb = [0.08, 0.08, 0.1, 0.1, 1.0, 1.0]
-x_ub = [0.5, 0.5, 1.0, 1.0, 3.0, 3.0]
+x_lb = [0.08, 0.08, 0.05, 0.05, 1.0, 1.0]
+x_ub = [0.5, 0.5, 1.0, 1.0, 4.0, 4.0]
 
 # algorithms
 # :LD_MMA
@@ -151,13 +151,13 @@ x_ub = [0.5, 0.5, 1.0, 1.0, 3.0, 3.0]
 # :LD_LBFGS
 # :GN_DIRECT
 # :GN_DIRECT_L
-opt_alg=:GN_DIRECT_L
+opt_alg=:LN_COBYLA
 
 opt1 = Opt(opt_alg, length(x_init)) # choose the algorithm
 lower_bounds!(opt1, x_lb)
 upper_bounds!(opt1, x_ub)
-ftol_rel!(opt1, 1e-6)
-ftol_abs!(opt1, 1e-6)
+ftol_rel!(opt1, 1e-10)
+ftol_abs!(opt1, 1e-10)
 
 min_objective!(opt1, obj_fun)
 (fObjOpt, paramOpt, flag) = optimize(opt1, x_init)

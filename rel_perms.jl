@@ -30,7 +30,7 @@ end
 
 function dkrodsw(sw::Real, kro0::Real, sor::Real, swc::Real, no::Real)
   if swc<=sw<=1-sor
-    res=-kro0/(1-sor-swc)*((1-sw-sor)/(1-sor-swc))^(no-1)
+    res=-no*kro0/(1-sor-swc)*((1-sw-sor)/(1-sor-swc))^(no-1)
   elseif 0.0<sw<swc
     res=(kro0-1)/swc
   elseif sw>1-sor || sw<=0.0
@@ -57,7 +57,7 @@ end
 
 function dkrwdsw(sw::Real, krw0::Real, sor::Real, swc::Real, nw::Real)
   if swc<=sw<=1-sor
-    res=krw0/(1-sor-swc)*((sw-swc)/(1-sor-swc))^(nw-1)
+    res=nw*krw0/(1-sor-swc)*((sw-swc)/(1-sor-swc))^(nw-1)
   elseif 1-sor<sw<1.0
     res=(1-krw0)/sor
   elseif sw<swc || sw>=1.0
