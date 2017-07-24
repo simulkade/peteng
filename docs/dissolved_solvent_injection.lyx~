@@ -143,7 +143,7 @@ S_{w}+S_{o}=1.\label{eq:summation}
 The transport of the solvent is described by
 \begin_inset Formula 
 \begin{equation}
-\frac{\partial}{\partial t}\left[\varphi\left(c_{w}\rho_{w}+c_{o}\rho_{o}\right)\right]+\nabla.\left(\mathbf{u_{o}}c_{o}\rho_{o}+\mathbf{u_{w}}c_{w}\rho_{w}\right)=0,\label{eq:solvent-transport}
+\frac{\partial}{\partial t}\left[\varphi\left(c_{w}S_{w}\rho_{w}+c_{o}\left(1-S_{w}\right)\rho_{o}\right)\right]+\nabla.\left(\mathbf{u_{o}}c_{o}\rho_{o}+\mathbf{u_{w}}c_{w}\rho_{w}\right)=0,\label{eq:solvent-transport}
 \end{equation}
 
 \end_inset
@@ -286,26 +286,26 @@ reference "eq:pc"
 Let's work with the original mass balance equation that are shorter and
  easier to linearize:
 \begin_inset Formula 
-\[
-\frac{\partial}{\partial t}\left(\varphi\rho_{w}S_{w}\right)+\nabla.\left(-\rho_{w}\frac{kk_{rw}}{\mu_{w}}\left(\nabla p_{w}-\rho_{w}\mathbf{g}\right)\right)=0,
-\]
+\begin{equation}
+\frac{\partial}{\partial t}\left(\varphi\rho_{w}S_{w}\right)+\nabla.\left(-\rho_{w}\frac{kk_{rw}}{\mu_{w}}\left(\nabla p_{w}-\rho_{w}\mathbf{g}\right)\right)=0,\label{eq:water-mass-main}
+\end{equation}
 
 \end_inset
 
 
 \begin_inset Formula 
-\[
-\frac{\partial}{\partial t}\left(\varphi\rho_{o}S_{o}\right)+\nabla.\left(-\rho_{o}\frac{kk_{ro}}{\mu_{o}}\left(\nabla p_{w}+\nabla p_{c}-\rho_{o}\mathbf{g}\right)\right)=0,
-\]
+\begin{equation}
+\frac{\partial}{\partial t}\left(\varphi\rho_{o}\left(1-S_{w}\right)\right)+\nabla.\left(-\rho_{o}\frac{kk_{ro}}{\mu_{o}}\left(\nabla p_{w}+\nabla p_{c}-\rho_{o}\mathbf{g}\right)\right)=0,\label{eq:oil-mass-main}
+\end{equation}
 
 \end_inset
 
 
 \begin_inset Formula 
-\begin{multline*}
-\frac{\partial}{\partial t}\left[\varphi\left(c_{w}\rho_{w}+c_{o}\rho_{o}\right)\right]+\nabla.\left(-\rho_{w}c_{w}\frac{kk_{rw}}{\mu_{w}}\left(\nabla p_{w}-\rho_{w}\mathbf{g}\right)\right)+\\
-+\nabla.\left(-\rho_{o}Kc_{w}\frac{kk_{ro}}{\mu_{o}}\left(\nabla p_{w}+\nabla p_{c}-\rho_{o}\mathbf{g}\right)\right)=0
-\end{multline*}
+\begin{multline}
+\frac{\partial}{\partial t}\left[\varphi\left(c_{w}S_{w}\rho_{w}+Kc_{w}\left(1-S_{w}\right)\rho_{o}\right)\right]+\nabla.\left(-\rho_{w}c_{w}\frac{kk_{rw}}{\mu_{w}}\left(\nabla p_{w}-\rho_{w}\mathbf{g}\right)\right)+\\
++\nabla.\left(-\rho_{o}Kc_{w}\frac{kk_{ro}}{\mu_{o}}\left(\nabla p_{w}+\nabla p_{c}-\rho_{o}\mathbf{g}\right)\right)=0\label{eq:transport-main}
+\end{multline}
 
 \end_inset
 
@@ -330,6 +330,176 @@ For other terms, we can use the Taylor expansion as
 \begin_inset Formula 
 \[
 f\left(s,c\right)=f\left(s_{0},c_{0}\right)+\left(\frac{\partial f}{\partial s}\right)_{s_{0},c_{0}}\left(s-s_{0}\right)+\left(\frac{\partial f}{\partial c}\right)_{s_{0},c_{0}}\left(c-c_{0}\right)+h.o.t
+\]
+
+\end_inset
+
+For convenience we define 
+\begin_inset Formula 
+\[
+\left(p,S,c\right)=\left(p_{w},S_{w},c_{w}\right)
+\]
+
+\end_inset
+
+Let's do the linearization for each term separately.
+\end_layout
+
+\begin_layout Standard
+For Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:water-mass-main"
+
+\end_inset
+
+)
+\begin_inset Formula 
+\begin{multline*}
+\rho_{w}S_{w}=\rho_{w}\left(c_{0}\right)S_{0}+S_{0}\frac{\partial\rho_{w}}{\partial c}\left(c-c_{0}\right)+\left(\rho_{w}\right)_{c_{0}}\left(S-S_{0}\right)+h.o.t=\\
+\left(\rho_{w}\right)_{c_{0}}S+S_{0}\left(\frac{\partial\rho_{w}}{\partial c}\right)_{c_{0}}\left(c-c_{0}\right)+h.o.t
+\end{multline*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\frac{\rho_{w}}{\mu_{w}}k_{rw}\nabla p_{w}=\left(\frac{\rho_{w}}{\mu_{w}}\right)_{c_{0}}\left(k_{rw}\right)_{S_{0}}\nabla p+\left(\frac{\rho_{w}}{\mu_{w}}\right)_{c_{0}}\left(\frac{\partial k_{rw}}{\partial S}\right)_{S_{0}}\nabla p_{0}\left(S-S_{0}\right)+\left(\frac{\partial\frac{\rho_{w}}{\mu_{w}}}{\partial c}\right)_{c_{0}}\left(k_{rw}\right)_{S_{0}}\nabla p_{0}\left(c-c_{0}\right)+h.o.t
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{\rho_{w}^{2}}{\mu_{w}}k_{rw}\mathbf{g}=\left(\frac{\rho_{w}^{2}}{\mu_{w}}\right)_{c_{0}}\left(k_{rw}\right)_{S_{0}}\mathbf{g}+\left(\frac{\rho_{w}^{2}}{\mu_{w}}\right)_{c_{0}}\left(\frac{\text{d}k_{rw}}{\text{d}S}\right)_{S_{0}}\mathbf{g}\left(S-S_{0}\right)+\left(\frac{\text{d}\frac{\rho_{w}^{2}}{\mu_{w}}}{\text{d}c}\right)_{c_{0}}\left(k_{rw}\right)_{S_{0}}\mathbf{g}\left(c-c_{0}\right)+h.o.t
+\]
+
+\end_inset
+
+For Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:oil-mass-main"
+
+\end_inset
+
+):
+\begin_inset Formula 
+\[
+\rho_{o}\left(1-S_{w}\right)=\left(\rho_{o}\right)_{c_{0}}\left(1-S\right)+\left(1-S_{0}\right)\left(\frac{\text{d}\rho_{o}}{\text{d}c}\right)_{c_{0}}\left(c-c_{0}\right)+h.o.t
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left(\rho_{o}\left(Kc\right)\right)^{\prime}=\left(Kc\right)^{\prime}\rho_{o}^{\prime}\left(Kc\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{\rho_{o}}{\mu_{o}}k_{ro}\nabla p_{w}=\left(\frac{\rho_{o}}{\mu_{o}}\right)_{c_{0}}\left(k_{ro}\right)_{S_{0}}\nabla p_{0}+\left(\frac{\partial\frac{\rho_{o}}{\mu_{o}}}{\partial c}\right)_{c_{0}}\left(k_{ro}\right)_{S_{0}}\nabla p_{0}\left(c-c_{0}\right)+\left(\frac{\rho_{o}}{\mu_{o}}\right)_{c_{0}}\left(\frac{\partial k_{ro}}{\partial S}\right)_{S_{0}}\nabla p_{0}\left(S-S_{0}\right)+h.o.t
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{multline*}
+\frac{\rho_{o}}{\mu_{o}}k_{ro}\nabla p_{c}=\frac{\rho_{o}}{\mu_{o}}k_{ro}\frac{\text{d}p_{c}}{\text{d}S}\nabla S=\left(\frac{\rho_{o}}{\mu_{o}}\right)_{c_{0}}\left(k_{ro}\frac{\text{d}p_{c}}{\text{d}S}\right)_{S_{0}}\nabla S+\\
++\left(\frac{\text{d}\frac{\rho_{o}}{\mu_{o}}}{\text{d}c}\right)_{c_{0}}\left(k_{ro}\frac{\text{d}p_{c}}{\text{d}S}\right)_{S_{0}}\nabla S_{0}\left(c-c_{0}\right)+\left(\frac{\rho_{o}}{\mu_{o}}\right)_{c_{0}}\left(\frac{\text{d}\left(k_{ro}\frac{\text{d}p_{c}}{\text{d}S}\right)}{\text{d}S}\right)_{S_{0}}\nabla S_{0}\left(S-S_{0}\right)
+\end{multline*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{\rho_{o}^{2}}{\mu_{o}}k_{ro}\mathbf{g}=\left(\frac{\rho_{o}^{2}}{\mu_{o}}\right)_{c_{0}}\left(k_{ro}\right)_{S_{0}}\mathbf{g}+\left(\frac{\rho_{o}^{2}}{\mu_{o}}\right)_{c_{0}}\left(\frac{\partial k_{ro}}{\partial S}\right)_{S_{0}}\mathbf{g}\left(S-S_{0}\right)+\left(\frac{\partial\frac{\rho_{o}^{2}}{\mu_{o}}}{\partial c}\right)_{c_{0}}\left(k_{ro}\right)_{S_{0}}\mathbf{g}\left(c-c_{0}\right)+h.o.t
+\]
+
+\end_inset
+
+For Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:transport-main"
+
+\end_inset
+
+):
+\begin_inset Formula 
+\[
+\frac{\partial}{\partial t}\left[\varphi\left(c_{w}S_{w}\rho_{w}+Kc_{w}\left(1-S_{w}\right)\rho_{o}\right)\right]+\nabla.\left(-\rho_{w}c_{w}\frac{kk_{rw}}{\mu_{w}}\left(\nabla p_{w}-\rho_{w}\mathbf{g}\right)\right)+\nabla.\left(-\rho_{o}Kc_{w}\frac{kk_{ro}}{\mu_{o}}\left(\nabla p_{w}+\nabla p_{c}-\rho_{o}\mathbf{g}\right)\right)=0
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+c_{w}S_{w}\rho_{w}=c_{0}\left(\rho_{w}\right)_{c_{0}}S+S_{0}\left(\frac{\partial\left(c\rho_{w}\right)}{\partial c}\right)_{c_{0}}\left(c-c_{0}\right)+h.o.t
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+Kc_{w}\left(1-S_{w}\right)\rho_{o}=c_{0}\left(K\rho_{o}\right)_{c_{0}}\left(1-S\right)+\left(1-S_{0}\right)\left(\frac{\partial\left(Kc\rho_{o}\right)}{\partial c}\right)_{c_{0}}\left(c-c_{0}\right)+h.o.t
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{c_{w}\rho_{w}}{\mu_{w}}k_{rw}\nabla p_{w}=\left(\frac{c\rho_{w}}{\mu_{w}}\right)_{c_{0}}\left(k_{rw}\right)_{S_{0}}\nabla p+\left(\frac{c\rho_{w}}{\mu_{w}}\right)_{c_{0}}\left(\frac{\partial k_{rw}}{\partial S}\right)_{S_{0}}\nabla p_{0}\left(S-S_{0}\right)+\left(\frac{\partial\frac{c\rho_{w}}{\mu_{w}}}{\partial c}\right)_{c_{0}}\left(k_{rw}\right)_{S_{0}}\nabla p_{0}\left(c-c_{0}\right)+h.o.t
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{c_{w}\rho_{w}^{2}}{\mu_{w}}k_{rw}\mathbf{g}=\left(\frac{c\rho_{w}^{2}}{\mu_{w}}\right)_{c_{0}}\left(k_{rw}\right)_{S_{0}}\mathbf{g}+\left(\frac{c\rho_{w}^{2}}{\mu_{w}}\right)_{c_{0}}\left(\frac{\partial k_{rw}}{\partial S}\right)_{S_{0}}\mathbf{g}\left(S-S_{0}\right)+\left(\frac{\partial\frac{c\rho_{w}^{2}}{\mu_{w}}}{\partial c}\right)_{c_{0}}\left(k_{rw}\right)_{S_{0}}\mathbf{g}\left(c-c_{0}\right)+h.o.t
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{Kc_{w}\rho_{o}}{\mu_{o}}k_{ro}\nabla p_{w}=\left(\frac{Kc\rho_{o}}{\mu_{o}}\right)_{c_{0}}\left(k_{ro}\right)_{S_{0}}\nabla p+\left(\frac{Kc\rho_{o}}{\mu_{o}}\right)_{c_{0}}\left(\frac{\text{d}k_{ro}}{\text{d}S}\right)_{S_{0}}\nabla p_{0}\left(S-S_{0}\right)+\left(\frac{\partial\frac{Kc\rho_{o}}{\mu_{o}}}{\partial c}\right)_{c_{0}}\left(k_{ro}\right)_{S_{0}}\nabla p_{0}\left(c-c_{0}\right)+h.o.t
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{multline*}
+\frac{Kc_{w}\rho_{o}}{\mu_{o}}k_{ro}\nabla p_{c}=\frac{Kc_{w}\rho_{o}}{\mu_{o}}k_{ro}\frac{\text{d}p_{c}}{\text{d}S}\nabla S=\left(\frac{Kc\rho_{o}}{\mu_{o}}\right)_{c_{0}}\left(k_{ro}\frac{\text{d}p_{c}}{\text{d}S}\right)_{S_{0}}\nabla S+\\
++\left(\frac{\text{d}\frac{Kc\rho_{o}}{\mu_{o}}}{\text{d}c}\right)_{c_{0}}\left(k_{ro}\frac{\text{d}p_{c}}{\text{d}S}\right)_{S_{0}}\nabla S_{0}\left(c-c_{0}\right)+\left(\frac{Kc\rho_{o}}{\mu_{o}}\right)_{c_{0}}\left(\frac{\text{d}\left(k_{ro}\frac{\text{d}p_{c}}{\text{d}S}\right)}{\text{d}S}\right)_{S_{0}}\nabla S_{0}\left(S-S_{0}\right)
+\end{multline*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{c_{w}\rho_{w}^{2}}{\mu_{w}}k_{rw}\mathbf{g}=\left(\frac{c\rho_{w}^{2}}{\mu_{w}}\right)_{c_{0}}\left(k_{rw}\right)_{S_{0}}\mathbf{g}+\left(\frac{c\rho_{w}^{2}}{\mu_{w}}\right)_{c_{0}}\left(\frac{\partial k_{rw}}{\partial S}\right)_{S_{0}}\mathbf{g}\left(S-S_{0}\right)+\left(\frac{\partial\frac{c\rho_{w}^{2}}{\mu_{w}}}{\partial c}\right)_{c_{0}}\left(k_{rw}\right)_{S_{0}}\mathbf{g}\left(c-c_{0}\right)+h.o.t
 \]
 
 \end_inset
