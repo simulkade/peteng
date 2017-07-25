@@ -62,8 +62,8 @@ function frac_flow_wf(;muw=1e-3, muo=2e-5, ut=1e-5, phi=0.2,
 
 # solve the nl equation to find the shock front saturation
   f_shock(sw)=(dfw(sw)-(fw(sw)-fw(sw0))/(sw-sw0))
-  # sw_shock = fzero(f_shock, (swc+1-sor)/2)
-  sw_shock = fzero(f_shock, [swc+eps(),1-sor-eps()])
+  sw_shock = fzero(f_shock, (swc+1-sor)/2)
+  # sw_shock = fzero(f_shock, [swc+eps(),1-sor-eps()])
   s=collect(linspace(0.0,1.0,100))
   s1 = collect(linspace(sw_inj, sw_shock, 1000))
   xt_s1 = ut/phi*dfw.(s1)
