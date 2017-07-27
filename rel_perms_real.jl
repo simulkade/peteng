@@ -133,3 +133,131 @@ function dpc_imb(sw::Real, pce::Real, swc::Real, sor::Real;
   dpc2=dpc_drain(1-sw, pce, sor, labda=labda2, pc0=pc02)
   return (0.5*(1+cos(teta)))^b*dpc1+(0.5*(1-cos(teta)))^b*dpc2
 end
+
+
+"""
+SECOND approach (see the doc folder)
+capillary pressure curve for drainage
+pc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e6)
+"""
+function pc_drain2(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Real=1.0e6)
+  sw_star=(1-swc)*exp(-labda*log(pc_star/pce))+swc
+  pc0 = pc_star*exp(sw_star/(labda*(1-swc)))
+  if sw>sw_star
+    res=pce*((sw-swc)/(1-swc))^(-1.0/labda)
+  elseif 0.0<=sw<=sw_star
+    res=pc_star*exp((sw_star-sw)/(labda*(1-swc)))
+  elseif sw<0
+    res=pc0
+  else
+    res=0.0
+  end
+end
+
+"""
+
+derivative of the drainage capillary pressure with respect to water saturation
+dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e6)
+"""
+function dpc_drain2(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Real=1.0e6)
+  sw_star=(1-swc)*exp(-labda*log(pc_star/pce))+swc
+  if sw>sw_star
+    res=-1.0/((1-swc)*labda)*pce*((sw-swc)/(1-swc))^(-1.0/labda-1)
+  elseif 0.0<=sw<=sw_star
+    res=pc_star/(sw-sw_star)
+  else
+    res=0.0
+  end
+end
+
+"""
+Imbibition capillary pressure curve
+pc_imb(sw::Real, pce::Real, swc::Real, sor::Real;
+  teta::Real=0.785, labda::Real=2.4, b::Real=0.6, pc01::Real=1.0e6, pc02::Real=1.0e6)
+"""
+function pc_imb2(sw::Real, pce::Real, swc::Real, sor::Real;
+  teta::Real=0.785, labda::Real=2.4, b::Real=0.6, pc_star1::Real=1.0e6, pc_star2::Real=1.0e6)
+  pc1=pc_drain2(sw, pce, swc, labda=labda, pc_star=pc_star1)
+  pc2=pc_drain2(1-sw, pce, sor, labda=labda, pc_star=pc_star2)
+  return (0.5*(1+cos(teta)))^b*pc1-(0.5*(1-cos(teta)))^b*pc2
+end
+
+"""
+derivative of the imbibition capillary pressure curve w.r.t water saturation
+pc_imb(sw::Real, pce::Real, swc::Real, sor::Real;
+  teta::Real=0.785, labda::Real=2.4, b::Real=0.6, pc01::Real=1.0e6, pc02::Real=1.0e6)
+"""
+function dpc_imb2(sw::Real, pce::Real, swc::Real, sor::Real;
+  teta::Real=0.785, labda1::Real=2.4, labda2::Real=2.4, b::Real=0.6, pc_star1::Real=1.0e6, pc_star2::Real=1.0e7)
+  dpc1=dpc_drain2(sw, pce, swc, labda=labda1, pc_star=pc_star1)
+  dpc2=dpc_drain2(1-sw, pce, sor, labda=labda2, pc_star=pc_star2)
+  return (0.5*(1+cos(teta)))^b*dpc1+(0.5*(1-cos(teta)))^b*dpc2
+end
+
+
+"""
+Third approach (see the doc folder)
+capillary pressure curve for drainage
+pc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e6)
+"""
+function pc_drain3(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Real=1.0e6, c::Real=1e-3)
+  # pc_max  = pc_max_multiplyer*pc_star
+  sw_star=(1-swc)*exp(-labda*log(pc_star/pce))+swc
+  # m = -pce/(labda*(1-swc))*((sw_star-swc)/(1-swc))^(-1.0/labda-1.0)
+  # c = 0.5*(-1.0+sqrt(1.0-(pc_max-pc_star)/(m*(exp(sw_star)-1))))
+  b = -pce*c/(labda*(1-swc))*((sw_star-swc)/(1-swc))^(-1.0/labda-1.0)
+  a = pc_star + b*exp(c)
+  pc0 = a-b*exp(sw_star+c)
+  if sw>sw_star
+    res=pce*((sw-swc)/(1-swc))^(-1.0/labda)
+  elseif 0.0<=sw<=sw_star
+    res=a-b*exp(sw_star-sw+c)
+  elseif sw<0
+    res=pc0
+  else
+    res=0.0
+  end
+end
+
+"""
+
+derivative of the drainage capillary pressure with respect to water saturation
+dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e6)
+"""
+function dpc_drain3(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Real=1.0e6, c::Real=1e-3)
+  sw_star=(1-swc)*exp(-labda*log(pc_star/pce))+swc
+  b = -pce*c/(labda*(1-swc))*((sw_star-swc)/(1-swc))^(-1.0/labda-1.0)
+  a = pc_star + b*exp(c)
+  pc0 = a-b*exp(sw_star+c)
+  if sw>sw_star
+    res=-1.0/((1-swc)*labda)*pce*((sw-swc)/(1-swc))^(-1.0/labda-1)
+  elseif 0.0<=sw<=sw_star
+    res=b/(sw_star-sw+c)
+  else
+    res=b/(sw_star+c)
+  end
+end
+
+"""
+Imbibition capillary pressure curve
+pc_imb(sw::Real, pce::Real, swc::Real, sor::Real;
+  teta::Real=0.785, labda::Real=2.4, b::Real=0.6, pc01::Real=1.0e6, pc02::Real=1.0e6)
+"""
+function pc_imb3(sw::Real, pce::Real, swc::Real, sor::Real;
+  teta::Real=0.785, labda::Real=2.4, b::Real=1.0, pc_star1::Real=1.0e6, pc_star2::Real=1.0e6, c::Real=1e-3)
+  pc1=pc_drain3(sw, pce, swc, labda=labda, pc_star=pc_star1, c=c)
+  pc2=pc_drain3(1-sw, pce, sor, labda=labda, pc_star=pc_star2, c=c)
+  return (0.5*(1+cos(teta)))^b*pc1-(0.5*(1-cos(teta)))^b*pc2
+end
+
+"""
+derivative of the imbibition capillary pressure curve w.r.t water saturation
+pc_imb(sw::Real, pce::Real, swc::Real, sor::Real;
+  teta::Real=0.785, labda::Real=2.4, b::Real=0.6, pc01::Real=1.0e6, pc02::Real=1.0e6)
+"""
+function dpc_imb3(sw::Real, pce::Real, swc::Real, sor::Real;
+  teta::Real=0.785, labda1::Real=2.4, labda2::Real=2.4, b::Real=1.0, pc_star1::Real=1.0e6, pc_star2::Real=1.0e6, c::Real=1e-3)
+  dpc1=dpc_drain3(sw, pce, swc, labda=labda1, pc_star=pc_star1, c=c)
+  dpc2=dpc_drain3(1-sw, pce, sor, labda=labda2, pc_star=pc_star2, c=c)
+  return (0.5*(1+cos(teta)))^b*dpc1+(0.5*(1-cos(teta)))^b*dpc2
+end

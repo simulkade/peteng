@@ -100,7 +100,7 @@ and the capillary pressure at zero water saturation is
 \begin_inset Formula $p_{c}^{0}$
 \end_inset
 
-] to the capillary pressure curve above which touches the curve at [
+] to the capillary pressure curve which touches the curve at [
 \begin_inset Formula $S_{w}^{*},p_{c}^{*}$
 \end_inset
 
@@ -301,6 +301,314 @@ S_{w,p_{c}=0}=\frac{\left(1-S_{wc}\right)^{2}+S_{wc}\left[\frac{1-\cos\theta}{1+
 \end_inset
 
 
+\end_layout
+
+\begin_layout Subsection
+Another approach (#2)
+\end_layout
+
+\begin_layout Standard
+Let's assume the curve reaches a maximum value of capillary pressure, called
+ 
+\begin_inset Formula $p_{c}^{*},$
+\end_inset
+
+from which a tangent is drawn to intersect the 
+\begin_inset Formula $p_{c}$
+\end_inset
+
+axis at 
+\begin_inset Formula $p_{c,0}$
+\end_inset
+
+.
+ We then write:
+\begin_inset Formula 
+\[
+p_{c}^{*}=p_{ce}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda},
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\ln\frac{p_{c}^{*}}{p_{ce}}=-\frac{1}{\lambda}\ln\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right),
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}=\exp\left(-\lambda\ln\frac{p_{c}^{*}}{p_{ce}}\right),
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+S_{w}^{*}=(1-S_{wc})\exp\left(-\lambda\ln\frac{p_{c}^{*}}{p_{ce}}\right)+S_{wc}
+\]
+
+\end_inset
+
+Now we assume that the slope of 
+\begin_inset Formula $\ln p_{c}$
+\end_inset
+
+ curve at [
+\begin_inset Formula $S_{w}^{*},$
+\end_inset
+
+ 
+\begin_inset Formula $p_{c}^{*}$
+\end_inset
+
+] is equal to the slope of the line connecting [
+\begin_inset Formula $S_{w}^{*},$
+\end_inset
+
+ 
+\begin_inset Formula $p_{c}^{*}$
+\end_inset
+
+] to [0, 
+\begin_inset Formula $p_{c,0}$
+\end_inset
+
+], i.e.,
+\begin_inset Formula 
+\[
+\frac{\ln p_{c}^{*}-\ln p_{c,0}}{S_{w}^{*}-0}=\left(\frac{\text{d}\ln p_{c}}{\text{d}S_{w}}\right)_{S_{w}^{*}}=-\frac{1}{\lambda\left(1-S_{wc}\right)}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\ln p_{c,0}=\ln p_{c}^{*}+\frac{S_{w}^{*}}{\lambda\left(1-S_{wc}\right)}
+\]
+
+\end_inset
+
+and finally
+\begin_inset Formula 
+\[
+\frac{\ln p_{c}^{*}-\ln p_{c}}{S_{w}^{*}-S_{w}}=-\frac{1}{\lambda\left(1-S_{wc}\right)},
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+p_{c}=p_{c}^{*}\exp\left(\frac{S_{w}^{*}-S_{w}}{\lambda\left(1-S_{wc}\right)}\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{\text{d}p_{c}}{\text{d}S_{w}}=-\frac{p_{c}^{*}}{S_{w}^{*}-S_{w}}=\frac{p_{c}^{*}}{S_{w}-S_{w}^{*}}
+\]
+
+\end_inset
+
+One more try (this time slope itself, not the slope of the logarithm)
+\begin_inset Formula 
+\[
+\frac{p_{c}^{*}-p_{c,0}}{S_{w}^{*}}=-\frac{1}{\lambda}\frac{p_{ce}}{1-S_{wc}}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda-1}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+p_{c,0}=p_{c}^{*}+\frac{1}{\lambda}\frac{S_{w}^{*}}{1-S_{wc}}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda-1}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{p_{c}^{*}-p_{c}}{S_{w}^{*}-S_{w}}=-\frac{1}{\lambda}\frac{p_{ce}}{1-S_{wc}}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda-1}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Approach 3 (and hopefully final)
+\end_layout
+
+\begin_layout Standard
+For 
+\begin_inset Formula $S_{w}<S_{w}^{*}$
+\end_inset
+
+, I define the following function:
+\begin_inset Formula 
+\[
+p_{c}=a-b\exp\left(S_{w}^{*}-S_{w}+c\right).
+\]
+
+\end_inset
+
+The unknowns 
+\begin_inset Formula $a,$
+\end_inset
+
+ 
+\begin_inset Formula $b$
+\end_inset
+
+, and 
+\begin_inset Formula $c$
+\end_inset
+
+ are calculated by solving the following system of equations:
+\begin_inset Formula 
+\[
+S_{w}=0,\quad p_{c}=p_{c,0}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+S_{w}=S_{w}^{*},\quad p_{c}=p_{c}^{*}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+S_{w}=S_{wc},\quad\text{slopes are equal}
+\]
+
+\end_inset
+
+We can now write:
+\begin_inset Formula 
+\[
+p_{c,0}=a-b\exp\left(S_{w}^{*}+c\right)=a-b\exp\left(S_{w}^{*}\right)\exp\left(c\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+p_{c}^{*}=a-b\exp\left(c\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+-\frac{1}{\lambda}\frac{p_{ce}}{1-S_{wc}}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda-1}=\frac{b}{c}
+\]
+
+\end_inset
+
+which gives
+\begin_inset Formula 
+\[
+a=\frac{p_{c,0}-p_{c}^{*}\exp\left(S_{w}^{*}\right)}{1-\exp\left(S_{w}^{*}\right)},
+\]
+
+\end_inset
+
+but difficult to solve for other variables.
+ We assume 
+\begin_inset Formula $\exp(c)=c+1+h.o.t$
+\end_inset
+
+, then 
+\begin_inset Formula $c$
+\end_inset
+
+ can be estimated by
+\begin_inset Formula 
+\[
+c=\frac{-1+\sqrt{1-\frac{p_{c,0}-p_{c}^{*}}{m\left(\exp\left(S_{w}^{*}\right)-1\right)}}}{2},
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $m$
+\end_inset
+
+ is defined by
+\begin_inset Formula 
+\[
+m=-\frac{1}{\lambda}\frac{p_{ce}}{1-S_{wc}}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda-1}.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+One simple way is to assign a small value to variable 
+\begin_inset Formula $c$
+\end_inset
+
+ that makes the function monotonically decreasing, i.e.,
+\begin_inset Formula 
+\[
+\frac{\text{d}p_{c}}{\text{d}S_{w}}<0.
+\]
+
+\end_inset
+
+After some algebraic operations and assuming 
+\begin_inset Formula $b<0$
+\end_inset
+
+, we find that
+\begin_inset Formula 
+\[
+c>0.
+\]
+
+\end_inset
+
+Here, I assume that 
+\begin_inset Formula $c=S_{w}^{*}/100$
+\end_inset
+
+.
+ Then,
+\begin_inset Formula 
+\[
+b=\frac{1}{\lambda}\frac{p_{ce}}{1-S_{wc}}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda-1}\left(\frac{S_{w}^{*}}{100}\right),
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+a=p_{c}^{*}+\frac{1}{\lambda}\frac{p_{ce}}{1-S_{wc}}\left(\frac{S_{w}^{*}-S_{wc}}{1-S_{wc}}\right)^{-1/\lambda-1}\left(\frac{S_{w}^{*}}{100}\right)\exp\left(-\frac{S_{w}^{*}}{100}\right)
+\]
+
+\end_inset
+
+ 
 \end_layout
 
 \end_body
