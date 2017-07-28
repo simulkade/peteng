@@ -220,7 +220,6 @@ function pc_drain3(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Rea
 end
 
 """
-
 derivative of the drainage capillary pressure with respect to water saturation
 dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e6)
 """
@@ -235,6 +234,24 @@ function dpc_drain3(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Re
     res=b/(sw_star-sw+c)
   else
     res=b/(sw_star+c)
+  end
+end
+
+"""
+second derivative of the drainage capillary pressure with respect to water saturation
+dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e6)
+"""
+function d2pc_drain3(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Real=1.0e6, c::Real=1e-3)
+  sw_star=(1-swc)*exp(-labda*log(pc_star/pce))+swc
+  b = -pce*c/(labda*(1-swc))*((sw_star-swc)/(1-swc))^(-1.0/labda-1.0)
+  a = pc_star + b*exp(c)
+  pc0 = a-b*exp(sw_star+c)
+  if sw>sw_star
+    res=-1.0/((1-swc)^2*labda)*(-1.0/labda-1.0)*pce*((sw-swc)/(1-swc))^(-1.0/labda-2.0)
+  elseif 0.0<=sw<=sw_star
+    res=b/(sw_star-sw+c)^2
+  else
+    res=b/(sw_star+c)^2
   end
 end
 
@@ -259,5 +276,17 @@ function dpc_imb3(sw::Real, pce::Real, swc::Real, sor::Real;
   teta::Real=0.785, labda1::Real=2.4, labda2::Real=2.4, b::Real=1.0, pc_star1::Real=1.0e6, pc_star2::Real=1.0e6, c::Real=1e-3)
   dpc1=dpc_drain3(sw, pce, swc, labda=labda1, pc_star=pc_star1, c=c)
   dpc2=dpc_drain3(1-sw, pce, sor, labda=labda2, pc_star=pc_star2, c=c)
+  return (0.5*(1+cos(teta)))^b*dpc1+(0.5*(1-cos(teta)))^b*dpc2
+end
+
+"""
+derivative of the imbibition capillary pressure curve w.r.t water saturation
+pc_imb(sw::Real, pce::Real, swc::Real, sor::Real;
+  teta::Real=0.785, labda::Real=2.4, b::Real=0.6, pc01::Real=1.0e6, pc02::Real=1.0e6)
+"""
+function d2pc_imb3(sw::Real, pce::Real, swc::Real, sor::Real;
+  teta::Real=0.785, labda1::Real=2.4, labda2::Real=2.4, b::Real=1.0, pc_star1::Real=1.0e6, pc_star2::Real=1.0e6, c::Real=1e-3)
+  dpc1=d2pc_drain3(sw, pce, swc, labda=labda1, pc_star=pc_star1, c=c)
+  dpc2=d2pc_drain3(1-sw, pce, sor, labda=labda2, pc_star=pc_star2, c=c)
   return (0.5*(1+cos(teta)))^b*dpc1+(0.5*(1-cos(teta)))^b*dpc2
 end
