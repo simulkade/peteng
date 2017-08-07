@@ -499,7 +499,7 @@ Kc_{w}\left(1-S_{w}\right)\rho_{o}=c_{0}\left(K\rho_{o}\right)_{c_{0}}\left(1-S\
 
 \begin_inset Formula 
 \[
-\frac{c_{w}\rho_{w}^{2}}{\mu_{w}}k_{rw}\mathbf{g}=\left(\frac{c\rho_{w}^{2}}{\mu_{w}}\right)_{c_{0}}\left(k_{rw}\right)_{S_{0}}\mathbf{g}+\left(\frac{c\rho_{w}^{2}}{\mu_{w}}\right)_{c_{0}}\left(\frac{\partial k_{rw}}{\partial S}\right)_{S_{0}}\mathbf{g}\left(S-S_{0}\right)+\left(\frac{\partial\frac{c\rho_{w}^{2}}{\mu_{w}}}{\partial c}\right)_{c_{0}}\left(k_{rw}\right)_{S_{0}}\mathbf{g}\left(c-c_{0}\right)+h.o.t
+\frac{Kc_{w}\rho_{o}^{2}}{\mu_{o}}k_{ro}\mathbf{g}=\left(\frac{Kc\rho_{o}^{2}}{\mu_{o}}\right)_{c_{0}}\left(k_{ro}\right)_{S_{0}}\mathbf{g}+\left(\frac{Kc\rho_{o}^{2}}{\mu_{o}}\right)_{c_{0}}\left(\frac{\partial k_{ro}}{\partial S}\right)_{S_{0}}\mathbf{g}\left(S-S_{0}\right)+\left(\frac{\partial\frac{Kc\rho_{o}^{2}}{\mu_{o}}}{\partial c}\right)_{c_{0}}\left(k_{ro}\right)_{S_{0}}\mathbf{g}\left(c-c_{0}\right)+h.o.t
 \]
 
 \end_inset
