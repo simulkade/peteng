@@ -356,10 +356,26 @@ reference "eq:water-mass-main"
 
 )
 \begin_inset Formula 
+\[
+\frac{\partial}{\partial t}\left(\varphi\rho_{w}S_{w}\right)+\nabla.\left(-\rho_{w}\frac{kk_{rw}}{\mu_{w}}\left(\nabla p_{w}-\rho_{w}\mathbf{g}\right)\right)=0
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
 \begin{multline*}
 \rho_{w}S_{w}=\rho_{w}\left(c_{0}\right)S_{0}+S_{0}\frac{\partial\rho_{w}}{\partial c}\left(c-c_{0}\right)+\left(\rho_{w}\right)_{c_{0}}\left(S-S_{0}\right)+h.o.t=\\
 \left(\rho_{w}\right)_{c_{0}}S+S_{0}\left(\frac{\partial\rho_{w}}{\partial c}\right)_{c_{0}}\left(c-c_{0}\right)+h.o.t
 \end{multline*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\frac{\partial}{\partial t}\left(\varphi\rho_{w}S_{w}\right)=\varphi\left(\rho_{w}\right)_{c_{0}}\frac{\partial\left(S-S_{0}\right)}{\partial t}+S_{0}\varphi\left(\frac{\partial\rho_{w}}{\partial c}\right)_{c_{0}}\frac{\partial\left(c-c_{0}\right)}{\partial t}
+\]
 
 \end_inset
 

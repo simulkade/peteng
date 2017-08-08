@@ -409,6 +409,14 @@ reference "eq:oil-mass-main"
 ):
 \begin_inset Formula 
 \[
+\frac{\partial}{\partial t}\left(\varphi\rho_{o}\left(1-S_{w}\right)\right)+\nabla.\left(-\rho_{o}\frac{kk_{ro}}{\mu_{o}}\left(\nabla p_{w}+\nabla p_{c}-\rho_{o}\mathbf{g}\right)\right)=0
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
 \rho_{o}\left(1-S_{w}\right)=\left(\rho_{o}\right)_{c_{0}}\left(1-S\right)+\left(1-S_{0}\right)\left(\frac{\text{d}\rho_{o}}{\text{d}c}\right)_{c_{0}}\left(c-c_{0}\right)+h.o.t
 \]
 
@@ -425,7 +433,7 @@ reference "eq:oil-mass-main"
 
 \begin_inset Formula 
 \[
-\frac{\rho_{o}}{\mu_{o}}k_{ro}\nabla p_{w}=\left(\frac{\rho_{o}}{\mu_{o}}\right)_{c_{0}}\left(k_{ro}\right)_{S_{0}}\nabla p_{0}+\left(\frac{\partial\frac{\rho_{o}}{\mu_{o}}}{\partial c}\right)_{c_{0}}\left(k_{ro}\right)_{S_{0}}\nabla p_{0}\left(c-c_{0}\right)+\left(\frac{\rho_{o}}{\mu_{o}}\right)_{c_{0}}\left(\frac{\partial k_{ro}}{\partial S}\right)_{S_{0}}\nabla p_{0}\left(S-S_{0}\right)+h.o.t
+\frac{\rho_{o}}{\mu_{o}}k_{ro}\nabla p_{w}=\left(\frac{\rho_{o}}{\mu_{o}}\right)_{c_{0}}\left(k_{ro}\right)_{S_{0}}\nabla p+\left(\frac{\partial\frac{\rho_{o}}{\mu_{o}}}{\partial c}\right)_{c_{0}}\left(k_{ro}\right)_{S_{0}}\nabla p_{0}\left(c-c_{0}\right)+\left(\frac{\rho_{o}}{\mu_{o}}\right)_{c_{0}}\left(\frac{\partial k_{ro}}{\partial S}\right)_{S_{0}}\nabla p_{0}\left(S-S_{0}\right)+h.o.t
 \]
 
 \end_inset
@@ -457,9 +465,10 @@ reference "eq:transport-main"
 
 ):
 \begin_inset Formula 
-\[
-\frac{\partial}{\partial t}\left[\varphi\left(c_{w}S_{w}\rho_{w}+Kc_{w}\left(1-S_{w}\right)\rho_{o}\right)\right]+\nabla.\left(-\rho_{w}c_{w}\frac{kk_{rw}}{\mu_{w}}\left(\nabla p_{w}-\rho_{w}\mathbf{g}\right)\right)+\nabla.\left(-\rho_{o}Kc_{w}\frac{kk_{ro}}{\mu_{o}}\left(\nabla p_{w}+\nabla p_{c}-\rho_{o}\mathbf{g}\right)\right)=0
-\]
+\begin{multline*}
+\frac{\partial}{\partial t}\left[\varphi\left(c_{w}S_{w}\rho_{w}+Kc_{w}\left(1-S_{w}\right)\rho_{o}\right)\right]+\nabla.\left(-\rho_{w}c_{w}\frac{kk_{rw}}{\mu_{w}}\left(\nabla p_{w}-\rho_{w}\mathbf{g}\right)\right)+\\
++\nabla.\left(-\rho_{o}Kc_{w}\frac{kk_{ro}}{\mu_{o}}\left(\nabla p_{w}+\nabla p_{c}-\rho_{o}\mathbf{g}\right)\right)=0
+\end{multline*}
 
 \end_inset
 
