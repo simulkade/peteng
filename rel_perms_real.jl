@@ -110,6 +110,22 @@ function dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.
   end
 end
 
+
+"""
+second derivative of the drainage capillary pressure with respect to water saturation
+dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e7)
+"""
+function d2pc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e7)
+  sw0=swc+(1-labda*log(pc0/pce)+sqrt((-1+labda*log(pc0/pce))^2+4*swc/(1-swc)))/2*(1-swc)
+  if sw>sw0
+    res=-1.0/((1-swc)^2*labda)*(-1.0/labda-1)*pce*((sw-swc)/(1-swc))^(-1.0/labda-2.0)
+  elseif 0.0<=sw<=sw0
+    res=0.0
+  else
+    res=0.0
+  end
+end
+
 """
 Imbibition capillary pressure curve
 pc_imb(sw::Real, pce::Real, swc::Real, sor::Real;
@@ -134,6 +150,18 @@ function dpc_imb(sw::Real, pce::Real, swc::Real, sor::Real;
   return (0.5*(1+cos(teta)))^b*dpc1+(0.5*(1-cos(teta)))^b*dpc2
 end
 
+"""
+second derivative of the imbibition capillary pressure curve w.r.t water saturation
+pc_imb(sw::Real, pce::Real, swc::Real, sor::Real;
+  teta::Real=0.785, labda::Real=2.4, b::Real=0.6, pc01::Real=1.0e7, pc02::Real=1.0e7)
+"""
+function d2pc_imb(sw::Real, pce::Real, swc::Real, sor::Real;
+  teta::Real=0.785, labda1::Real=2.4, labda2::Real=2.4, b::Real=0.6, pc01::Real=1.0e7, pc02::Real=1.0e7)
+  dpc1=d2pc_drain(sw, pce, swc, labda=labda1, pc0=pc01)
+  dpc2=d2pc_drain(1-sw, pce, sor, labda=labda2, pc0=pc02)
+  return (0.5*(1+cos(teta)))^b*dpc1+(0.5*(1-cos(teta)))^b*dpc2
+end
+
 
 """
 SECOND approach (see the doc folder)
@@ -144,9 +172,9 @@ function pc_drain2(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Rea
   sw_star=(1-swc)*exp(-labda*log(pc_star/pce))+swc
   pc0 = pc_star*exp(sw_star/(labda*(1-swc)))
   if sw>sw_star
-    res=pce*((sw-swc)/(1-swc))^(-1.0/labda)
+    res=pce*((sw-swc)/(1.0-swc))^(-1.0/labda)
   elseif 0.0<=sw<=sw_star
-    res=pc_star*exp((sw_star-sw)/(labda*(1-swc)))
+    res=pc_star*exp((sw_star-sw)/(labda*(1.0-swc)))
   elseif sw<0
     res=pc0
   else
@@ -162,7 +190,7 @@ dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e6)
 function dpc_drain2(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Real=1.0e6)
   sw_star=(1-swc)*exp(-labda*log(pc_star/pce))+swc
   if sw>sw_star
-    res=-1.0/((1-swc)*labda)*pce*((sw-swc)/(1-swc))^(-1.0/labda-1)
+    res=-1.0/((1-swc)*labda)*pce*((sw-swc)/(1-swc))^(-1.0/labda-1.0)
   elseif 0.0<=sw<=sw_star
     res=pc_star/(sw-sw_star)
   else
