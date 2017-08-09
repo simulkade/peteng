@@ -178,7 +178,7 @@ k = createCellVariable(m, perm_val)
 
 n_pv    = 2.0 # number of injected pore volumes
 t_final = n_pv*Lx/(u_inj/poros_val) # [s] final time
-dt      = t_final/n_pv/Nx/20 # [s] time step
+dt      = t_final/n_pv/Nx/30 # [s] time step
 
 # outside the loop: initialization
 uw       = gradientTerm(p_val) # only for initialization of the water velocity vector
@@ -187,7 +187,7 @@ k_face   = harmonicMean(k)     # permeability on the cell faces
 # this whole thing goes inside two loops (Newton and time)
 tol_s = 1e-5
 
-for t = dt:dt:500*dt
+for t = dt:dt:50*dt
     error_s = 1e5
     while(error_s>tol_s)
         ∇p0      = gradientTerm(p_val)
@@ -238,7 +238,7 @@ for t = dt:dt:500*dt
         M_d_p_omb = diffusionTerm(-rho_oil_face.*λ_o_face)
         # M_a_c_omb = convectionUpwindTerm(-dρ_dμ_oil.*k_face.*kro_face.*(∇p0+dpc_face.*∇s0))
         M_a_c_omb = convectionUpwindTerm(-dρ_dμ_oil.*k_face.*kro_face.*∇p0)
-        M_a_s_omb = -convectionUpwindTerm(rho_oil_face.*(dλ_o_face.*∇p0))
+        M_a_s_omb = convectionUpwindTerm(-rho_oil_face.*(dλ_o_face.*∇p0))
                                         # +(dλ_o_face.*dpc_face+λ_o_face.*d2pc_face).*∇s0))
         M_d_s_omb = 0.0 #diffusionTerm(-rho_oil_face.*λ_o_face.*dpc_face)
 

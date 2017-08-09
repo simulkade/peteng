@@ -122,11 +122,11 @@ sw_imb_end = fzero(PC, [swc, 1-sor])
 # yscale("symlog")
 
 Lx   = 1.0 # [m]
-Nx  = 50  # number of grids in the x direction
+Nx  = 100  # number of grids in the x direction
 m   = createMesh1D(Nx, Lx)
 
 u_inj = 1.0/(3600*24) # 1 m/day to m/s injection velocity
-c_inj = 0.0 # DME mass fraction in the injected water
+c_inj = 0.2 # DME mass fraction in the injected water
 
 BCp = createBC(m) # pressure boundary condition
 BCs = createBC(m) # saturation boundary condition
@@ -178,22 +178,26 @@ k = createCellVariable(m, perm_val)
 
 n_pv    = 2.0 # number of injected pore volumes
 t_final = n_pv*Lx/(u_inj/poros_val) # [s] final time
-dt      = t_final/n_pv/Nx/10 # [s] time step
+dt      = t_final/n_pv/Nx/50 # [s] time step
 
 # outside the loop: initialization
 uw       = gradientTerm(p_val) # only for initialization of the water velocity vector
 k_face   = harmonicMean(k)     # permeability on the cell faces
 
 # this whole thing goes inside two loops (Newton and time)
+tol_s = 1e-7
+tol_c = 1e-7
 
 for t = dt:dt:500*dt
-    for i=1:3
+    error_s = 2*tol_s
+    error_c = 2*tol_c
+    while error_s>tol_s || error_c>tol_c
         ∇p0      = gradientTerm(p_val)
         ∇s0      = gradientTerm(sw_val)
 
+        c_face   = upwindMean(c_val, uw)
         c_oil         = cellEval(w_oil, c_val) # [mass frac] DME concentration in oil
-        c_oil_face    = arithmeticMean(c_oil)
-        c_face  = arithmeticMean(c_val)
+        c_oil_face    = faceEval(w_oil, c_face)
         sw_face       = upwindMean(sw_val, uw)
 
         mu_water_face = faceEval(μ_water, c_face)
@@ -217,6 +221,7 @@ for t = dt:dt:500*dt
 
         λ_w_face      = k_face.*krw_face./mu_water_face
         λ_o_face      = k_face.*kro_face./mu_oil_face
+        uw            = -λ_w_face.*∇p0
 
         dλ_w_face     = k_face.*faceEval(dKRW,sw_face)./mu_water_face
         dλ_o_face     = k_face.*faceEval(dKRO,sw_face)./mu_oil_face
@@ -264,7 +269,7 @@ for t = dt:dt:500*dt
              M_d_p_omb   M_bc_s+M_t_s_omb+M_a_s_omb+M_d_s_omb    M_t_c_omb+M_a_c_omb;
              M_d_p_dme    M_t_s_dme+M_a_s_dme+M_d_s_dme    M_bc_c+M_t_c_dme+M_a_c_dme;]
 
-        RHS = [RHS_bc_p+RHS_t_s_wmb;
+        RHS = [RHS_bc_p+RHS_t_s_wmb+M_a_s_wmb*sw_val.value[:]+M_a_c_wmb*c_val.value[:];
                RHS_bc_s+RHS_t_s_omb+RHS_t_c_omb+(M_a_s_omb+M_d_s_omb)*sw_val.value[:]+M_a_c_omb*c_val.value[:];
                RHS_bc_c+RHS_t_s_dme+RHS_t_c_dme+(M_a_s_dme+M_d_s_dme)*sw_val.value[:]+M_a_c_dme*c_val.value[:];]
 
@@ -274,7 +279,10 @@ for t = dt:dt:500*dt
         p_new = x_sol[1:Nx+2]
         s_new = x_sol[Nx+3:2*Nx+4]
         c_new = x_sol[2*Nx+5:end]
-
+        error_s = sumabs(s_new[2:end-1]-sw_val.value[2:end-1])
+        error_c = sumabs(c_new[2:end-1]-c_val.value[2:end-1])
+        println(error_s)
+        println(error_c)
         p_val.value[:] = p_new[:]
         sw_val.value[:] = s_new[:]
         c_val.value[:] = c_new[:]
@@ -283,3 +291,5 @@ for t = dt:dt:500*dt
     sw_init = copyCell(sw_val)
     c_init = copyCell(c_val)
 end
+visualizeCells(sw_init)
+savefig("profile.png")
