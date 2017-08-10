@@ -178,40 +178,28 @@ k = createCellVariable(m, perm_val)
 
 n_pv    = 2.0 # number of injected pore volumes
 t_final = n_pv*Lx/(u_inj/poros_val) # [s] final time
-dt0     = t_final/n_pv/Nx/10.0 # [s] time step
-dt      = dt0
+dt      = t_final/n_pv/Nx/100 # [s] time step
 
 # outside the loop: initialization
 uw       = gradientTerm(p_val) # only for initialization of the water velocity vector
 k_face   = harmonicMean(k)     # permeability on the cell faces
 
 # this whole thing goes inside two loops (Newton and time)
-tol_s = 1e-7
-tol_c = 1e-7
-max_change_c = 0.1 # 10 % relative change
-max_change_s = 0.1 # 10 % relative change
-max_int_loop = 10
-t = dt
-while t<50*dt0
+tol_s = 1e-10
+tol_c = 1e-10
+FL = fluxLimiter("SUPERBEE") # flux limiter
+
+for t = dt:dt:20*dt
   error_s = 2*tol_s
   error_c = 2*tol_c
-  loop_countor = 0
   while error_s>tol_s || error_c>tol_c
-    loop_countor += 1
-    if loop_countor > max_int_loop
-      sw_val = copyCell(sw_init)
-      c_val  = copyCell(c_init)
-      p_val  = copyCell(p_init)
-      dt = dt/10.0
-      break
-    end
     ∇p0      = gradientTerm(p_val)
     ∇s0      = gradientTerm(sw_val)
 
-    c_face   = upwindMean(c_val, uw)
+    c_face   = tvdMean(c_val, uw, FL)
     c_oil         = cellEval(w_oil, c_val) # [mass frac] DME concentration in oil
     c_oil_face    = faceEval(w_oil, c_face)
-    sw_face       = upwindMean(sw_val, uw)
+    sw_face       = tvdMean(sw_val, uw, FL)
 
     mu_water_face = faceEval(μ_water, c_face)
     dμ_water_face = faceEval(dμ_water, c_face)
@@ -244,20 +232,20 @@ while t<50*dt0
 
     # Δsw_init = sw_init - sw_val # we solve for this variable
     # Δc_init  = c_init - c_val   # we solve for this variable
-
     # water mass balance (wmb)
     M_t_s_wmb, RHS_t_s_wmb = transientTerm(sw_init, dt, rho_water*ϕ)
     M_d_p_wmb = diffusionTerm(-rho_water*λ_w_face)
-    M_a_s_wmb = convectionUpwindTerm(-rho_water*dλ_w_face.*∇p0)
-    M_a_c_wmb = convectionUpwindTerm(rho_water*dμ_water_face./mu_water_face.*λ_w_face.*∇p0)
+    M_a_s_wmb, RHS_a_s_wmb = convectionTvdTerm(-rho_water*dλ_w_face.*∇p0, sw_val, FL)
+    M_a_c_wmb, RHS_a_c_wmb = convectionTvdTerm(
+          rho_water*dμ_water_face./mu_water_face.*λ_w_face.*∇p0, c_val, FL)
 
     # oil mass balance (omb)
     M_t_s_omb, RHS_t_s_omb = transientTerm(sw_init, dt, -rho_oil_cell.*ϕ)
     M_t_c_omb, RHS_t_c_omb = transientTerm(c_init, dt, (1.0-sw_val).*dρ_oil_cell.*ϕ)
     M_d_p_omb = diffusionTerm(-rho_oil_face.*λ_o_face)
     # M_a_c_omb = convectionUpwindTerm(-dρ_dμ_oil.*k_face.*kro_face.*(∇p0+dpc_face.*∇s0))
-    M_a_c_omb = convectionUpwindTerm(-dρ_dμ_oil.*k_face.*kro_face.*∇p0)
-    M_a_s_omb = convectionUpwindTerm(-rho_oil_face.*(dλ_o_face.*∇p0))
+    M_a_c_omb, RHS_a_c_omb = convectionTvdTerm(-dρ_dμ_oil.*k_face.*kro_face.*∇p0, c_val, FL)
+    M_a_s_omb, RHS_a_s_omb = convectionTvdTerm(rho_oil_face.*(dλ_o_face.*∇p0), sw_val, FL)
                                     # +(dλ_o_face.*dpc_face+λ_o_face.*d2pc_face).*∇s0))
     M_d_s_omb = 0.0 #diffusionTerm(-rho_oil_face.*λ_o_face.*dpc_face)
 
@@ -266,25 +254,25 @@ while t<50*dt0
     M_t_c_dme, RHS_t_c_dme = transientTerm(c_init, dt, (rho_water*sw_val+
                                            (1.0-sw_val).*dρc_oil_cell).*ϕ)
     M_d_p_dme  = diffusionTerm(-rho_water*c_face.*λ_w_face-rho_oil_face.*c_oil_face.*λ_o_face)
-    M_a_s_dme  = convectionUpwindTerm(-(rho_water*c_face.*dλ_w_face+
-                                      rho_oil_face.*c_oil_face.*dλ_o_face).*∇p0)
+    M_a_s_dme, RHS_a_s_dme  = convectionTvdTerm(-(rho_water*c_face.*dλ_w_face+
+                                      rho_oil_face.*c_oil_face.*dλ_o_face).*∇p0, sw_val, FL)
                                     #   -rho_oil_face.*c_oil_face.*
                                     #   (dλ_o_face.*dpc_face+λ_o_face.*d2pc_face).*∇s0)
-    M_a_c_dme  = convectionUpwindTerm(-(rho_water*(mu_water_face-dμ_water_face.*c_face)
+    M_a_c_dme, RHS_a_c_dme  = convectionTvdTerm(-(rho_water*(mu_water_face-dμ_water_face.*c_face)
                                       ./mu_water_face.*λ_w_face+
-                                        dρc_dμ_oil.*k_face.*kro_face).*∇p0)
+                                        dρc_dμ_oil.*k_face.*kro_face).*∇p0, c_val, FL)
                                     #   -dρc_dμ_oil.*k_face.*kro_face.*dpc_face.*∇s0)
     M_d_s_dme  = 0.0 # diffusionTerm(-c_oil_face.*rho_oil_face.*λ_o_face.*dpc_face)
 
     # create the PDE system M [p;s;c]=RHS
     # x_val = [p_val.value[:]; sw_val.value[:]; c_val.value[:]]
     M = [M_bc_p+M_d_p_wmb   M_t_s_wmb+M_a_s_wmb    M_a_c_wmb;
-         M_d_p_omb   M_bc_s+M_t_s_omb+M_a_s_omb+M_d_s_omb    M_t_c_omb+M_a_c_omb;
+         M_d_p_omb   M_bc_s+M_t_s_omb-M_a_s_omb+M_d_s_omb    M_t_c_omb+M_a_c_omb;
          M_d_p_dme    M_t_s_dme+M_a_s_dme+M_d_s_dme    M_bc_c+M_t_c_dme+M_a_c_dme;]
 
-    RHS = [RHS_bc_p+RHS_t_s_wmb+M_a_s_wmb*sw_val.value[:]+M_a_c_wmb*c_val.value[:];
-           RHS_bc_s+RHS_t_s_omb+RHS_t_c_omb+(M_a_s_omb+M_d_s_omb)*sw_val.value[:]+M_a_c_omb*c_val.value[:];
-           RHS_bc_c+RHS_t_s_dme+RHS_t_c_dme+(M_a_s_dme+M_d_s_dme)*sw_val.value[:]+M_a_c_dme*c_val.value[:];]
+    RHS = [RHS_bc_p+RHS_t_s_wmb+M_a_s_wmb*sw_val.value[:]+M_a_c_wmb*c_val.value[:]+RHS_a_s_wmb+RHS_a_c_wmb;
+           RHS_bc_s+RHS_t_s_omb+RHS_t_c_omb+(M_a_s_omb+M_d_s_omb)*sw_val.value[:]+M_a_c_omb*c_val.value[:]-RHS_a_s_omb+RHS_a_c_omb;
+           RHS_bc_c+RHS_t_s_dme+RHS_t_c_dme+(M_a_s_dme+M_d_s_dme)*sw_val.value[:]+M_a_c_dme*c_val.value[:]+RHS_a_s_dme+RHS_a_c_dme;]
 
     # x_sol = solveLinearPDE(m, M, RHS)
     x_sol = M\RHS
@@ -296,18 +284,15 @@ while t<50*dt0
     error_c = sumabs(c_new[2:end-1]-c_val.value[2:end-1])
     # println(error_s)
     # println(error_c)
+    println("time: $t [s]")
     p_val.value[:] = p_new[:]
     sw_val.value[:] = s_new[:]
     c_val.value[:] = c_new[:]
+
   end
-  if loop_countor<max_int_loop
-    p_init = copyCell(p_val)
-    sw_init = copyCell(sw_val)
-    c_init = copyCell(c_val)
-    t +=dt
-    dt = dt0
-    println("time is $t [s]")
-  end
+  p_init = copyCell(p_val)
+  sw_init = copyCell(sw_val)
+  c_init = copyCell(c_val)
 end
 visualizeCells(sw_init)
 visualizeCells(c_init)
