@@ -54,6 +54,7 @@ function forced_imb_impes(mu_water, mu_oil, ut, phi0,
   # implicit solver)
   rec_fact=zeros(1)
   t_day=zeros(1)
+  dp_hist = zeros(1)
   t = 0.0
   dt0=dt
   dsw_alwd= 0.05
@@ -108,8 +109,9 @@ function forced_imb_impes(mu_water, mu_oil, ut, phi0,
           end
       end
 
-      rec_fact=push!(rec_fact, (oil_init-domainInt(1-sw))/oil_init)
-      t_day=push!(t_day, t)
+      push!(rec_fact, (oil_init-domainInt(1-sw))/oil_init)
+      push!(t_day, t)
+      push!(dp_hist, 0.5*sum(p.value[1:2])-p0)
       # print(t)
       # GR.plot(sw.value[2:end-1])
       # GR.imshow(sw.value[2:end-1,2:end-1])
@@ -119,5 +121,6 @@ function forced_imb_impes(mu_water, mu_oil, ut, phi0,
       # ylabel('recovery factor')
       # title([num2str(t/3600/24) ' day']) drawnow
   end
-  t_day, rec_fact, sw
+  dp_hist[1] = dp_hist[2]
+  t_day, rec_fact, dp_hist, sw
 end # imb_impes
