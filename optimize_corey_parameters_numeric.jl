@@ -23,6 +23,7 @@ t_day = lowsal["fathi2010"]["coreFloodData"]["SF20-a"]["time(day)"]
 R_oil = lowsal["fathi2010"]["coreFloodData"]["SF20-a"]["recovery"]/100
 injection_rate_pv_day = core_flood_condition["injectionRate(PV/day)"]
 recovery_final = core_flood_condition["recovery(%OOIP)"]/100
+dp_exp = 0.0
 
 so_final = (1-recovery_final)*soi # final oil saturation
 pv_inj = t_day[end]*injection_rate_pv_day
@@ -64,7 +65,7 @@ nw = 3.0
 
 # JLD.@save "input_params_BL.jld" mu_water mu_oil u_inj poros perm_ave swc sor kro0 no krw0 nw swi L_core pv_inj # for the blog post
 
-(t_num, R_num, sw_prf)=forced_imb_impes(mu_water, mu_oil, u_inj, poros, perm_ave, swc, sor, kro0, no,
+(t_num, R_num, dp, sw_prf)=forced_imb_impes(mu_water, mu_oil, u_inj, poros, perm_ave, swc, sor, kro0, no,
   krw0,nw, swi, 1.0, L_core, pv_inj, Nx=50)
 
 
@@ -77,21 +78,27 @@ plot(t_anal, R_anal, "o", t_num, R_num)
 
 # define the objective functions
 # param = [sor, swc, kro0, krw0, no, nw]
-function error_calc(param, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj, t_exp, R_exp)
+function error_calc(param, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj, t_exp, R_exp, dp_exp=0.0)
   (sor, swc, kro0, krw0, no, nw) = param
-  (t, R, sw_prf)=
+  (t, R, dp, sw_prf)=
   forced_imb_impes(muw, muo, ut, phi,
     k, swc, sor, kro0, no, krw0,
     nw, sw0, sw_inj, L, pv_inj)
   R_int = Spline1D(t, R, k=1)
-  error_vals = R_int(t_exp) - R_exp
+  dp_int = Spline1D(t, dp, k=1)
+  error_vals_R = R_int(t_exp) - R_exp
+  error_vals = error_vals_R
+  if dp_exp != 0
+      error_vals_dp = (dp_int(t_exp) - dp_exp)/maximum(dp_exp) # normalize
+      error_vals = [error_vals_R; error_vals_dp;]
+  end
   return error_vals
 end
 
 function error_calculation(param, param_ind, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj,
-  t_exp, R_exp; grad_calc=true)
+  t_exp, R_exp, dp_exp; grad_calc=true)
   eps1 = 1e-8
-  error_vals = error_calc(param, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj, t_exp, R_exp)
+  error_vals = error_calc(param, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj, t_exp, R_exp, dp_exp)
   if grad_calc
     jac  = zeros(length(error_vals), length(param_ind))
   else
@@ -101,7 +108,7 @@ function error_calculation(param, param_ind, muw, muo, ut, phi, k, sw0, sw_inj, 
     for j in eachindex(param_ind)
       param2 = copy(param)
       param2[param_ind[j]]+=eps1
-      error_val2 = error_calc(param2, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj, t_exp, R_exp)
+      error_val2 = error_calc(param2, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj, t_exp, R_exp, dp_exp)
       jac[:, j] = (error_val2 - error_vals) / eps1
     end
   end
@@ -110,7 +117,7 @@ end
 
 
 function objective_function(param::Vector{Float64}, grad::Vector{Float64}, param_all,
-  param_ind, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj, t_exp, R_exp; w=1.0)
+  param_ind, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj, t_exp, R_exp, dp_exp; w=1.0)
   param2 = copy(param_all)
   param2[param_ind] = param
   grad_calc = false
@@ -118,7 +125,7 @@ function objective_function(param::Vector{Float64}, grad::Vector{Float64}, param
     grad_calc = true
   end
   error_val, jac = error_calculation(param2, param_ind, muw, muo, ut, phi, k, sw0,
-    sw_inj, L, pv_inj, t_exp, R_exp, grad_calc = grad_calc)
+    sw_inj, L, pv_inj, t_exp, R_exp, dp_exp, grad_calc = grad_calc)
   obj_func_value = sum(abs2, w.*error_val)
   if length(grad)>0
       grad[:] = 2.0*sum(w.*error_val.*jac, 1)
@@ -126,7 +133,7 @@ function objective_function(param::Vector{Float64}, grad::Vector{Float64}, param
   return obj_func_value
 end
 
-function plot_results(param, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj, t_exp, R_exp)
+function plot_results(param, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj, t_exp, R_exp, dp_exp)
   (sor, swc, kro0, krw0, no, nw) = param
   (xt_shock, sw_shock, xt_prf, sw_prf, t, p_inj, R)=
   frac_flow_wf(muw=muw, muo=muo, ut=ut, phi=phi,
@@ -137,7 +144,7 @@ function plot_results(param, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj, t_exp
   plot(t_exp, R_int(t_exp), t_exp, R_exp, "o")
 end
 
-plot_quick = param -> plot_results(param, mu_water, mu_oil, u_inj, poros, perm_ave, swi, 1.0, L_core, pv_inj, t_sec_cor, R_oil)
+plot_quick = param -> plot_results(param, mu_water, mu_oil, u_inj, poros, perm_ave, swi, 1.0, L_core, pv_inj, t_sec_cor, R_oil, dp_exp)
 # Optimization problem:
 
 # parameter values
@@ -149,7 +156,7 @@ w[end]=2
 w[end-1]=2
 w[7] = 3
 obj_fun = (param, grad) -> objective_function(param::Vector{Float64}, grad::Vector{Float64}, param_all,
-  param_ind, mu_water, mu_oil, u_inj, poros, perm_ave, swi, 1.0, L_core, pv_inj, t_sec_cor, R_oil, w=w)
+  param_ind, mu_water, mu_oil, u_inj, poros, perm_ave, swi, 1.0, L_core, pv_inj, t_sec_cor, R_oil, dp_exp, w=w)
 
 # x_init = [0.2, 0.8, 0.4, 2, 2]
 # x_lb = [0.1, 0.1, 0.1, 0.5, 0.5]
