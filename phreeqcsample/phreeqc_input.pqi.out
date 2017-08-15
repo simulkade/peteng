@@ -1,0 +1,42 @@
+   Input file: phreeqc_input.pqi
+  Output file: phreeqc_input.pqi.out
+Using PHREEQC: version 3.3.12 Ampère, compiled May 29 2017
+Database file: c:\phreeqc\database\phreeqc.dat
+
+------------------
+Reading data base.
+------------------
+
+	SOLUTION_MASTER_SPECIES
+	SOLUTION_SPECIES
+	PHASES
+	EXCHANGE_MASTER_SPECIES
+	EXCHANGE_SPECIES
+	SURFACE_MASTER_SPECIES
+	SURFACE_SPECIES
+	RATES
+	END
+------------------------------------
+Reading input data for simulation 1.
+------------------------------------
+
+	SOLUTION_MASTER_SPECIES
+	  [A]   [A]   0.0     1.0     1.0
+	  [B]   [B]   0.0     1.0     1.0
+	  [C]   [C]   0.0     1.0     1.0
+	SOLUTION_SPECIES
+	  [A] = [A]
+	  log_k  0.0
+	  [B] = [B]
+	  log_k  0.0
+	  [C] = [C]
+	  log_k  0.0
+	  0.5 [A] + 0.5 [B] = [C]
+	  log_k = 0.5
+	END
+ERROR: Equation does not balance for element, [A]: right - left =  0.5000 moles
+ERROR: Equation does not balance for element, [B]: right - left =  0.5000 moles
+ERROR: Equation does not balance for element, [C]: right - left = -1.0000 moles
+ERROR: Equation for species [C] does not balance.
+ERROR: Calculations terminating due to input errors.
+Stopping.

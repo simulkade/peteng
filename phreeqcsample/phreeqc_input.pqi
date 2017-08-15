@@ -1,0 +1,38 @@
+# SOLUTION_MASTER_SPECIES
+  # [A]   [A]   0.0     1.0     1.0
+  # [B]   [B]   0.0     1.0     1.0
+  # [C]   [C]   0.0     1.0     1.0
+
+# SOLUTION_SPECIES
+  # [A] = [A]
+  # log_k  0.0
+  # [B] = [B]
+  # log_k  0.0
+  # [C] = [C]
+  # log_k  0.0
+  # 0.5 [A] + 0.5 [B] = [C]
+  # log_k = 0.5
+# END
+
+# SOLUTION 0
+  # [A]    1.0
+  # [B]    0.0
+  # [C]    0.0
+# END
+# SOLUTION 1-100
+  # [A]    0.0
+  # [B]    0.5
+  # [C]    0.0
+# END
+SOLUTION 0
+  pH 7 charge
+  Na    1.0
+  Cl    0.0
+  Ca    0.1
+END
+SOLUTION 1-100
+  pH 7 charge
+  Na    0.0
+  Cl    0.5
+  Ca    0.0
+END
