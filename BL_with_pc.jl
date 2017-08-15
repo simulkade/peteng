@@ -15,41 +15,41 @@ n_o  = 2.0
 n_w  = 2.0
 swc  = 0.08
 sor  = 0.3
-sorting_factor = 2.4
-pce = 1e3 # [Pa]
-pc0 = 10e5 # [Pa]
+sorting_factor = 2.4-1
+pce = 1e5 # [Pa]
+pc0 = 100e5 # [Pa]
 contact_angle = deg2rad(20) # [radian]
 
-perm_val  = 0.01e-12 # [m^2] permeability
+perm_val  = 0.1e-12 # [m^2] permeability
 poros_val = 0.40     # [-] porosity
 
 KRW  = sw -> krw.(sw, krw0, sor, swc, n_w)
 dKRW = sw -> dkrwdsw.(sw, krw0, sor, swc, n_w)
 KRO  = sw -> kro.(sw, kro0, sor, swc, n_o)
 dKRO = sw -> dkrodsw.(sw, kro0, sor, swc, n_o)
-PC   = sw -> pc_imb.(sw, pce, swc, sor, teta=contact_angle,
-                labda=sorting_factor, b = 0.0, pc01=pc0, pc02=pc0)
-dPC  = sw -> dpc_imb.(sw, pce, swc, sor, teta=contact_angle,
-                labda1=sorting_factor, labda2=sorting_factor,
-                b = 1.0, pc01=pc0, pc02=pc0)
-d2PC = sw -> d2pc_imb.(sw, pce, swc, sor, teta=contact_angle,
-                labda1=sorting_factor, labda2=sorting_factor,
-                b = 1.0, pc01=pc0, pc02=pc0)
+# PC   = sw -> pc_imb.(sw, pce, swc, sor, teta=contact_angle,
+#                 labda=sorting_factor, b = 0.0, pc01=pc0, pc02=pc0)
+# dPC  = sw -> dpc_imb.(sw, pce, swc, sor, teta=contact_angle,
+#                 labda1=sorting_factor, labda2=sorting_factor,
+#                 b = 1.0, pc01=pc0, pc02=pc0)
+# d2PC = sw -> d2pc_imb.(sw, pce, swc, sor, teta=contact_angle,
+#                 labda1=sorting_factor, labda2=sorting_factor,
+#                 b = 1.0, pc01=pc0, pc02=pc0)
 # PC2  = sw -> pc_imb2(sw, pce, swc, sor, teta=contact_angle,
 #                 labda=sorting_factor, b = 0.0, pc_star1=pc0,
 #                 pc_star2=pc0)
 # dPC2 = sw -> dpc_imb2(sw, pce, swc, sor, teta=contact_angle,
 #                 labda1=sorting_factor, labda2=sorting_factor,
 #                 b = 1.0, pc_star1=pc0, pc_star2=pc0)
-# PC  = sw -> pc_imb3.(sw, pce, swc, sor, teta=contact_angle,
-#                 labda=sorting_factor, b = 0.0, pc_star1=pc0,
-#                 pc_star2=pc0)
-# dPC = sw -> dpc_imb3.(sw, pce, swc, sor, teta=contact_angle,
-#                 labda1=sorting_factor, labda2=sorting_factor,
-#                 b = 1.0, pc_star1=pc0, pc_star2=pc0)
-# d2PC = sw -> d2pc_imb3.(sw, pce, swc, sor, teta=contact_angle,
-#                 labda1=sorting_factor, labda2=sorting_factor,
-#                 b = 1.0, pc_star1=pc0, pc_star2=pc0)
+PC  = sw -> pc_imb3.(sw, pce, swc, sor, teta=contact_angle,
+                labda=sorting_factor, b = 0.0, pc_star1=pc0,
+                pc_star2=pc0)
+dPC = sw -> dpc_imb3.(sw, pce, swc, sor, teta=contact_angle,
+                labda1=sorting_factor, labda2=sorting_factor,
+                b = 1.0, pc_star1=pc0, pc_star2=pc0)
+d2PC = sw -> d2pc_imb3.(sw, pce, swc, sor, teta=contact_angle,
+                labda1=sorting_factor, labda2=sorting_factor,
+                b = 1.0, pc_star1=pc0, pc_star2=pc0)
 # PCdrain2 = sw -> pc_drain2(sw, pce, swc, labda=sorting_factor, pc_star=pc0)
 # PCdrain3 = sw -> pc_drain3(sw, pce, swc, labda=sorting_factor, pc_star=pc0)
 sw_imb_end = fzero(PC, [swc, 1-sor])
@@ -98,7 +98,7 @@ sw_val = createCellVariable(m, sw0, BCs)
 k = createCellVariable(m, perm_val)
 ϕ = createCellVariable(m, poros_val)
 
-n_pv    = 2.0 # number of injected pore volumes
+n_pv    = 1.0 # number of injected pore volumes
 t_final = n_pv*Lx/(u_inj/poros_val) # [s] final time
 dt0      = t_final/n_pv/Nx/20 # [s] time step
 dt = dt0
@@ -111,7 +111,7 @@ tol_s = 1e-7
 max_change_s = 0.1 # 10 % relative change
 max_int_loop = 10
 t = dt
-while t<1500*dt0
+while t<50*dt0 #t_final
     error_s = 2*tol_s
     loop_countor = 0
     while error_s>tol_s
@@ -149,14 +149,16 @@ while t<1500*dt0
         # water mass balance (wmb)
         M_t_s_wmb, RHS_t_s_wmb = transientTerm(sw_init, dt, rho_water*ϕ)
         M_d_p_wmb = diffusionTerm(-rho_water*λ_w_face)
-        M_a_s_wmb = convectionUpwindTerm(-rho_water*dλ_w_face.*∇p0)
+        M_a_s_wmb = convectionUpwindTerm(-rho_water*dλ_w_face.*∇p0, uw)
 
         # oil mass balance (omb)
         M_t_s_omb, RHS_t_s_omb = transientTerm(sw_init, dt, -rho_oil*ϕ)
         M_d_p_omb = diffusionTerm(-rho_oil*λ_o_face)
         M_a_s_omb = convectionUpwindTerm(-rho_oil*((dλ_o_face.*∇p0)
-                                        +(dλ_o_face.*dpc_face+λ_o_face.*d2pc_face).*∇s0))
-        M_d_s_omb = diffusionTerm(-rho_oil*λ_o_face.*dpc_face)
+                                        +dλ_o_face.*dpc_face.*∇s0), uw)
+        # M_a_s_omb = convectionUpwindTerm(-rho_oil*((dλ_o_face.*∇p0)
+        #                                 +(dλ_o_face.*dpc_face+λ_o_face.*d2pc_face).*∇s0), uw)
+        M_d_s_omb = 0.0 # diffusionTerm(-rho_oil*λ_o_face.*dpc_face)
 
         # create the PDE system M [p;s;c]=RHS
         # x_val = [p_val.value[:]; sw_val.value[:]; c_val.value[:]]
@@ -180,7 +182,7 @@ while t<1500*dt0
       sw_init = copyCell(sw_val)
       t +=dt
       dt = dt0
-      println("time is $t [s]")
+      println("progress: $(t/t_final*100) %")
     end
 end
 visualizeCells(sw_init)
