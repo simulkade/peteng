@@ -15,12 +15,12 @@ n_o  = 2.0
 n_w  = 2.0
 swc  = 0.08
 sor  = 0.3
-sorting_factor = 2.4-1
-pce = 1e5 # [Pa]
-pc0 = 100e5 # [Pa]
+sorting_factor = 2.4
+pce = 1e4 # [Pa]
+pc0 = 10e5 # [Pa]
 contact_angle = deg2rad(20) # [radian]
 
-perm_val  = 0.1e-12 # [m^2] permeability
+perm_val  = 0.01e-12 # [m^2] permeability
 poros_val = 0.40     # [-] porosity
 
 KRW  = sw -> krw.(sw, krw0, sor, swc, n_w)
@@ -75,15 +75,16 @@ BCs.left.a[:]  = 0.0
 BCs.left.b[:]  = 1.0
 BCs.left.c[:]  = 1.0
 
-BCs.right.a[:]  = 0.0
-BCs.right.b[:]  = 1.0
-BCs.right.c[:]  = sw_imb_end
+# BCs.right.a[:]  = 0.0
+# BCs.right.b[:]  = 1.0
+# BCs.right.c[:]  = sw_imb_end
+boundary_switch = true
 
 # discretize
 M_bc_p, RHS_bc_p = boundaryConditionTerm(BCp)
 M_bc_s, RHS_bc_s = boundaryConditionTerm(BCs)
 
-sw0 = swc+0.05 # [vol frac] initial water saturation
+sw0 = swc+0.15 # [vol frac] initial water saturation
 
 p_init  = createCellVariable(m, p0, BCp)
 sw_init = createCellVariable(m, sw0, BCs)
@@ -111,7 +112,7 @@ tol_s = 1e-7
 max_change_s = 0.1 # 10 % relative change
 max_int_loop = 10
 t = dt
-while t<50*dt0 #t_final
+while t<80*dt0 #t_final
     error_s = 2*tol_s
     loop_countor = 0
     while error_s>tol_s
@@ -135,7 +136,7 @@ while t<50*dt0 #t_final
 
         λ_w_face      = k_face.*krw_face/mu_water
         λ_o_face      = k_face.*kro_face/mu_oil
-        uw            = -λ_w_face.*∇p0
+        uw            = -λ_w_face.*∇p0-λ_w_face.*(∇p0+dpc_face.*∇s0)
 
         dλ_w_face     = k_face.*faceEval(dKRW,sw_face)/mu_water
         dλ_o_face     = k_face.*faceEval(dKRO,sw_face)/mu_oil
@@ -154,8 +155,8 @@ while t<50*dt0 #t_final
         # oil mass balance (omb)
         M_t_s_omb, RHS_t_s_omb = transientTerm(sw_init, dt, -rho_oil*ϕ)
         M_d_p_omb = diffusionTerm(-rho_oil*λ_o_face)
-        M_a_s_omb = convectionUpwindTerm(-rho_oil*((dλ_o_face.*∇p0)
-                                        +dλ_o_face.*dpc_face.*∇s0), uw)
+        M_a_s_omb = convectionUpwindTerm(-rho_oil*dλ_o_face.*(∇p0+dpc_face.*∇s0), uw)
+        RHS_d_s_omb = divergenceTerm(rho_oil*λ_o_face.*dpc_face.*∇s0)
         # M_a_s_omb = convectionUpwindTerm(-rho_oil*((dλ_o_face.*∇p0)
         #                                 +(dλ_o_face.*dpc_face+λ_o_face.*d2pc_face).*∇s0), uw)
         M_d_s_omb = 0.0 # diffusionTerm(-rho_oil*λ_o_face.*dpc_face)
@@ -166,7 +167,7 @@ while t<50*dt0 #t_final
              M_d_p_omb   M_bc_s+M_t_s_omb+M_a_s_omb+M_d_s_omb;]
 
         RHS = [RHS_bc_p+RHS_t_s_wmb+M_a_s_wmb*sw_val.value[:];
-               RHS_bc_s+RHS_t_s_omb+(M_a_s_omb)*sw_val.value[:];]
+               RHS_bc_s+RHS_t_s_omb+RHS_d_s_omb+(M_a_s_omb)*sw_val.value[:];]
         # x_sol = solveLinearPDE(m, M, RHS)
         x_sol = M\RHS
 
@@ -183,6 +184,13 @@ while t<50*dt0 #t_final
       t +=dt
       dt = dt0
       println("progress: $(t/t_final*100) %")
+      if 0.5*sum(sw_val.value[end-1:end])>=sw_imb_end && boundary_switch
+          boundary_switch = false
+          BCs.right.a[:]  = 0.0
+          BCs.right.b[:]  = 1.0
+          BCs.right.c[:]  = sw_imb_end
+          M_bc_s, RHS_bc_s = boundaryConditionTerm(BCs)
+      end
     end
 end
 visualizeCells(sw_init)
