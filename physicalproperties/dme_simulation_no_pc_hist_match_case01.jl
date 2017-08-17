@@ -167,11 +167,11 @@ sor_face      = faceEval(sor_c, c_oil_face)
 k = createCellVariable(m, perm_val)
 ϕ = createCellVariable(m, poros_val)
 
-n_pv1     = 0.1 # number of injected pore volumes
+n_pv1     = 2 # number of injected pore volumes
 t_final1  = n_pv1*Lx/(u_inj/poros_val) # [s] final time for water flood
 dt01      = t_final1/n_pv1/Nx # [s] time step
 dt        = dt01
-n_pv2     = 0.1
+n_pv2     = 4
 t_final2  = t_final1+n_pv1*Lx/(u_inj/poros_val) # [s] final time for DME flood
 dt02      = t_final2/n_pv2/Nx/10 # [s] time step
 dt0 = dt01
