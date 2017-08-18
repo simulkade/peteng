@@ -62,8 +62,11 @@ function frac_flow_wf(;muw=1e-3, muo=2e-5, ut=1e-5, phi=0.2,
 
 # solve the nl equation to find the shock front saturation
   f_shock(sw)=(dfw(sw)-(fw(sw)-fw(sw0))/(sw-sw0))
-  # sw_shock = fzero(f_shock, (swc+1-sor)/2)
-  sw_shock = fzero(f_shock, [swc+eps(),1-sor-eps()])
+  if f_shock(swc+eps())*f_shock(1-sor-eps())>0
+      sw_shock = fzero(f_shock, (swc+1-sor)/2)
+  else
+      sw_shock = fzero(f_shock, [swc+eps(),1-sor-eps()])
+  end
   s=collect(linspace(0.0,1.0,100))
   s1 = collect(linspace(sw_inj, sw_shock, 1000))
   xt_s1 = ut/phi*dfw.(s1)
@@ -91,9 +94,10 @@ function frac_flow_wf(;muw=1e-3, muo=2e-5, ut=1e-5, phi=0.2,
 
 # find the injection pressure history
   x = collect(linspace(0,L,1000))
-  sw_int = Spline1D([xt_prf; L/eps()], [sw_prf; sw0], k=1)
+  # sw_int = Spline1D([xt_prf; L/eps()], [sw_prf; sw0], k=1)
+  sw_int = Spline1D(xt_prf, sw_prf, k=1)
   t_inj=pv_inj*phi*L/ut
-  t = collect(linspace(eps(),t_inj, 200)) # [s] time
+  t = collect(linspace(0.0,t_inj, 200)) # [s] time
   p_inj = zeros(length(t))
   R_oil= zeros(length(t))
   p_inj[1]=trapz(x, ut./(k*(kro_new.(sw0*ones(size(x)))/muo+krw_new.(sw0*ones(size(x)))/muw)))
