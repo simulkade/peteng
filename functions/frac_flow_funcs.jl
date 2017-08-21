@@ -79,7 +79,7 @@ function frac_flow_wf(;muw=1e-3, muo=2e-5, ut=1e-5, phi=0.2,
 # Go through the data first
   i=1
   while(true)
-    if (i+1)==length(xt_prf)
+    if i==length(xt_prf)
       break
     elseif xt_prf[i]>=xt_prf[i+1]
       deleteat!(xt_prf, i+1)

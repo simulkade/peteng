@@ -1,4 +1,4 @@
-using Roots, Dierckx, NLopt, CoolProp, PyPlot, JLD
+using Roots, Dierckx, LsqFit, CoolProp, PyPlot, JLD
 import JSON
 include("../functions/rel_perms.jl")
 include("../functions/frac_flow_funcs.jl")
@@ -58,6 +58,25 @@ function error_calc(param, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj, t_exp, 
   end
   return error_vals
 end
+
+function error_calc_lsq(param, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj, t_exp, R_exp, dp_exp=0.0)
+  (sor, swc, kro0, krw0, no, nw) = param
+  (xt_shock, sw_shock, xt_prf, sw_prf, t, p_inj, R)=
+  frac_flow_wf(muw=muw, muo=muo, ut=ut, phi=phi,
+    k=k, swc=swc, sor=sor, kro0=kro0, no=no, krw0=krw0,
+    nw=nw, sw0=sw0, sw_inj=sw_inj, L=L, pv_inj=pv_inj)
+  R_int = Spline1D(t, R, k=1)
+  dp_int = Spline1D(t, p_inj, k=1)
+  error_vals_R = R_int(t_exp)
+  error_vals = error_vals_R
+  if dp_exp != 0.0
+      error_vals_dp = dp_int(t_exp) # normalize
+      error_vals = [error_vals_R; error_vals_dp;]
+  end
+  return error_vals
+end
+
+model = (t_exp, param) -> error_calc_lsq(param, mu_water, mu_oil, u_inj, poros, perm_ave, swi, 1.0, L_core, pv_inj, t_sec, R_oil, dp_exp)
 
 function error_calculation(param, param_ind, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj,
   t_exp, R_exp, dp_exp; grad_calc=true)
@@ -142,23 +161,6 @@ x_init = copy(param_all)
 x_lb = [0.05, 0.05, 0.05, 0.05, 1.0, 1.0]
 x_ub = [0.5, swi, 1.0, 1.0, 4.0, 4.0]
 
-# algorithms
-# :LD_MMA
-# :LN_COBYLA
-# :LD_LBFGS
-# :GN_DIRECT
-# :GN_DIRECT_L
-opt_alg=:GN_DIRECT
+fit = curve_fit(model, [t_sec;t_sec], [R_oil;dp_exp], w, x_init, lower = x_lb, upper = x_ub)
 
-opt1 = Opt(opt_alg, length(x_init)) # choose the algorithm
-lower_bounds!(opt1, x_lb)
-upper_bounds!(opt1, x_ub)
-ftol_rel!(opt1, 1e-10)
-ftol_abs!(opt1, 1e-10)
-
-min_objective!(opt1, obj_fun)
-(fObjOpt, paramOpt, flag) = optimize(opt1, x_init)
-
-param_plot = copy(param_all)
-param_plot[param_ind] = paramOpt
-plot_quick(param_plot)
+plot_quick(fit.param)

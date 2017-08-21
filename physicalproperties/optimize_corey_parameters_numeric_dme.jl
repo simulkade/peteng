@@ -1,8 +1,9 @@
-using Roots, Dierckx, NLopt, CoolProp, PyPlot, JLD
-import JSON
-include("../functions/rel_perms.jl")
-include("../functions/frac_flow_funcs.jl")
+using Roots, Dierckx, NLopt, CoolProp, PyPlot, JFVM
+import JLD
 
+include("../functions/rel_perms.jl")
+include("../functions/forced_imbibition_corey.jl")
+include("../functions/frac_flow_funcs.jl")
 
 # read the data files
 L_core = 0.05
@@ -40,19 +41,32 @@ T_K = T_c + 273.15
 perm_ave = 0.001e-12 # m^2 permeability
 mu_water = PropsSI("viscosity", "T", T_K, "P", 5e5, "H2O")
 
+# JLD.@save "input_params_BL.jld" mu_water mu_oil u_inj poros perm_ave swc sor kro0 no krw0 nw swi L_core pv_inj # for the blog post
+
+# (t_num, R_num, dp, sw_prf)=forced_imb_impes(mu_water, mu_oil, u_inj, poros, perm_ave, swc, sor, kro0, no,
+#   krw0,nw, swi, 1.0, L_core, pv_inj, Nx=50)
+
+
+# (xt_shock, sw_shock, xt_prf, sw_prf, t_anal, p_inj, R_anal) = frac_flow_wf(
+#   muw=mu_water, muo=mu_oil, ut=u_inj, phi=poros,
+#   k=perm_ave, swc=swc, sor=sor, kro0=kro0, no=no, krw0=krw0,
+#   nw=nw, sw0=swi, sw_inj=1.0, L=L_core, pv_inj=pv_inj)
+#
+# plot(t_anal, R_anal, "o", t_num, R_num)
+
 # define the objective functions
 # param = [sor, swc, kro0, krw0, no, nw]
 function error_calc(param, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj, t_exp, R_exp, dp_exp=0.0)
   (sor, swc, kro0, krw0, no, nw) = param
-  (xt_shock, sw_shock, xt_prf, sw_prf, t, p_inj, R)=
-  frac_flow_wf(muw=muw, muo=muo, ut=ut, phi=phi,
-    k=k, swc=swc, sor=sor, kro0=kro0, no=no, krw0=krw0,
-    nw=nw, sw0=sw0, sw_inj=sw_inj, L=L, pv_inj=pv_inj)
+  (t, R, dp, sw_prf)=
+  forced_imb_impes(muw, muo, ut, phi,
+    k, swc, sor, kro0, no, krw0,
+    nw, sw0, sw_inj, L, pv_inj)
   R_int = Spline1D(t, R, k=1)
-  dp_int = Spline1D(t, p_inj, k=1)
+  dp_int = Spline1D(t, dp, k=1)
   error_vals_R = R_int(t_exp) - R_exp
   error_vals = error_vals_R
-  if dp_exp != 0.0
+  if dp_exp != 0
       error_vals_dp = (dp_int(t_exp) - dp_exp)/maximum(dp_exp) # normalize
       error_vals = [error_vals_R; error_vals_dp;]
   end
@@ -104,20 +118,8 @@ function plot_results(param, muw, muo, ut, phi, k, sw0, sw_inj, L, pv_inj, t_exp
     k=k, swc=swc, sor=sor, kro0=kro0, no=no, krw0=krw0,
     nw=nw, sw0=sw0, sw_inj=sw_inj, L=L, pv_inj=pv_inj)
   R_int = Spline1D(t, R, k=1)
-  dp_int = Spline1D(t, p_inj, k=1)
   error_vals = R_int(t_exp) - R_exp
-  t_plot = linspace(0.0, maximum(t_exp), 100)
-  figure(1)
-  plot(t_plot, R_int(t_plot), t_exp, R_exp, "o")
-  xlabel("time [s]")
-  ylabel("Recovery factor")
-  figure(2)
-  plot(t_plot, dp_int(t_plot))
-  if dp_exp !=0.0
-      plot(t_exp, dp_exp, "o")
-  end
-  xlabel("time [s]")
-  ylabel("pressure drop [Pa]")
+  plot(t_exp, R_int(t_exp), t_exp, R_exp, "o")
 end
 
 plot_quick = param -> plot_results(param, mu_water, mu_oil, u_inj, poros, perm_ave, swi, 1.0, L_core, pv_inj, t_sec, R_oil, dp_exp)
@@ -125,7 +127,7 @@ plot_quick = param -> plot_results(param, mu_water, mu_oil, u_inj, poros, perm_a
 
 # parameter values
 # [sor, swc, kro0, krw0, no, nw]
-param_all = [0.2, swi/3, 0.95, 0.6, 2, 2.4]
+param_all = [so_final, 0.2, 0.5, 0.5, 2, 2.4]
 param_ind = [1, 2,3,4,5,6]
 w = ones(2*length(R_oil))
 # w[end]=2
@@ -139,8 +141,8 @@ obj_fun = (param, grad) -> objective_function(param::Vector{Float64}, grad::Vect
 # x_ub = [0.5, 1.0, 1.0, 5.0, 5.0]
 
 x_init = copy(param_all)
-x_lb = [0.05, 0.05, 0.05, 0.05, 1.0, 1.0]
-x_ub = [0.5, swi, 1.0, 1.0, 4.0, 4.0]
+x_lb = [0.08, 0.08, 0.1, 0.1, 1.0, 1.0]
+x_ub = [0.5, 0.5, 1.0, 1.0, 3.0, 3.0]
 
 # algorithms
 # :LD_MMA
@@ -148,13 +150,13 @@ x_ub = [0.5, swi, 1.0, 1.0, 4.0, 4.0]
 # :LD_LBFGS
 # :GN_DIRECT
 # :GN_DIRECT_L
-opt_alg=:GN_DIRECT
+opt_alg=:GN_DIRECT_L
 
 opt1 = Opt(opt_alg, length(x_init)) # choose the algorithm
 lower_bounds!(opt1, x_lb)
 upper_bounds!(opt1, x_ub)
-ftol_rel!(opt1, 1e-10)
-ftol_abs!(opt1, 1e-10)
+ftol_rel!(opt1, 1e-6)
+ftol_abs!(opt1, 1e-6)
 
 min_objective!(opt1, obj_fun)
 (fObjOpt, paramOpt, flag) = optimize(opt1, x_init)
