@@ -39,7 +39,7 @@ t_sec = pv_inj_exp*PV_core/injection_rate
 u_inj   = injection_rate/A_core # Darcy velocity
 T_K = T_c + 273.15
 perm_ave = 0.001e-12 # m^2 permeability
-mu_water = 0.5e-3 # PropsSI("viscosity", "T", T_K, "P", 5e5, "H2O")
+mu_water = PropsSI("viscosity", "T", T_K, "P", 5e5, "H2O")
 
 # JLD.@save "input_params_BL.jld" mu_water mu_oil u_inj poros perm_ave swc sor kro0 no krw0 nw swi L_core pv_inj # for the blog post
 
