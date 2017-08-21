@@ -144,7 +144,7 @@ plot_quick = param -> plot_results(param, mu_water, mu_oil, u_inj, poros, perm_a
 
 # parameter values
 # [sor, swc, kro0, krw0, no, nw]
-param_all = [0.2, swi/3, 0.95, 0.6, 2, 2.4]
+param_all = [0.2, swi/3, 0.95, 0.6, 2.0, 2.0]
 param_ind = [1, 2,3,4,5,6]
 w = ones(2*length(R_oil))
 # w[end]=2
@@ -158,8 +158,8 @@ obj_fun = (param, grad) -> objective_function(param::Vector{Float64}, grad::Vect
 # x_ub = [0.5, 1.0, 1.0, 5.0, 5.0]
 
 x_init = copy(param_all)
-x_lb = [0.05, 0.05, 0.05, 0.05, 1.0, 1.0]
-x_ub = [0.5, swi, 1.0, 1.0, 4.0, 4.0]
+x_lb = [0.05, 0.05, 0.1, 0.1, 1.0, 1.0]
+x_ub = [0.3,0.3, 1.0, 1.0, 4.0, 4.0]
 
 fit = curve_fit(model, [t_sec;t_sec], [R_oil;dp_exp], w, x_init, lower = x_lb, upper = x_ub)
 

@@ -52,21 +52,30 @@ function frac_flow_wf(;muw=1e-3, muo=2e-5, ut=1e-5, phi=0.2,
   krw_new = sw -> krw(sw, krw0, sor, swc, nw)
   dkrwdsw_new = sw -> dkrwdsw(sw, krw0, sor, swc, nw)
   dkrodsw_new = sw -> dkrodsw(sw, kro0, sor, swc, no)
-  fw(sw)=((krw_new(sw)/muw)./(krw_new(sw)/muw+kro_new(sw)/muo))
-  dfw(sw)=((dkrwdsw_new(sw)/muw.*(krw_new(sw)/muw+kro_new(sw)/muo)-
-    (dkrwdsw_new(sw)/muw+dkrodsw_new(sw)/muo).*krw_new(sw)/muw)./
-    (kro_new(sw)/muo+krw_new(sw)/muw).^2)
+  fw(sw)=((krw_new(sw)/muw)/(krw_new(sw)/muw+kro_new(sw)/muo))
+  dfw(sw)=((dkrwdsw_new(sw)/muw*(krw_new(sw)/muw+kro_new(sw)/muo)-
+    (dkrwdsw_new(sw)/muw+dkrodsw_new(sw)/muo)*krw_new(sw)/muw)/
+    (kro_new(sw)/muo+krw_new(sw)/muw)^2)
   eps1=1e-3
   dfw_num(sw) = (fw(sw+eps1)-fw(sw-eps1))/(2*eps1)
   ftot(sw)=kro_new(sw)/muo+krw_new(sw)/muw
 
 # solve the nl equation to find the shock front saturation
-  f_shock(sw)=(dfw(sw)-(fw(sw)-fw(sw0))/(sw-sw0))
-  if f_shock(swc+eps())*f_shock(1-sor-eps())>0
-      sw_shock = fzero(f_shock, (swc+1-sor)/2)
-  else
-      sw_shock = fzero(f_shock, [swc+eps(),1-sor-eps()])
+  sw_shock = 0
+  try
+      f_shock = sw->(dfw(sw)-(fw(sw)-fw(sw0))/(sw-sw0))
+      if f_shock(swc+eps())*f_shock(1-sor-eps())>0
+          sw_shock = fzero(f_shock, (swc+1-sor)/2)
+      else
+          sw_shock = fzero(f_shock, [swc+eps(),1-sor-eps()])
+      end
+  catch
+      println("swc=$swc, sor=$sor, kro0=$kro0, no=$no, krw0=$krw0, nw=$nw,")
+      error("Could not find the shock front saturation!")
   end
+  # sw_shock1 = sciopt.newton(f_shock, (swc+1-sor)/2.0) # just a test!
+  # sw_shock = sw_shock1[1]
+
   s=collect(linspace(0.0,1.0,100))
   s1 = collect(linspace(sw_inj, sw_shock, 1000))
   xt_s1 = ut/phi*dfw.(s1)

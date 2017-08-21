@@ -1,6 +1,7 @@
-using Roots, Dierckx, NLopt, CoolProp, PyPlot, JLD
+using Roots, Dierckx, NLopt, CoolProp, PyPlot, JLD, PyCall
 import JSON
-include("../functions/rel_perms.jl")
+@pyimport scipy.optimize as sciopt
+include("../functions/rel_perms_real.jl")
 include("../functions/frac_flow_funcs.jl")
 
 
@@ -125,7 +126,7 @@ plot_quick = param -> plot_results(param, mu_water, mu_oil, u_inj, poros, perm_a
 
 # parameter values
 # [sor, swc, kro0, krw0, no, nw]
-param_all = [0.2, swi/3, 0.95, 0.6, 2, 2.4]
+param_all = [0.2, 0.3, 1.0, 1.0, 3, 3]
 param_ind = [1, 2,3,4,5,6]
 w = ones(2*length(R_oil))
 # w[end]=2
@@ -138,9 +139,9 @@ obj_fun = (param, grad) -> objective_function(param::Vector{Float64}, grad::Vect
 # x_lb = [0.1, 0.1, 0.1, 0.5, 0.5]
 # x_ub = [0.5, 1.0, 1.0, 5.0, 5.0]
 
-x_init = copy(param_all)
-x_lb = [0.05, 0.05, 0.05, 0.05, 1.0, 1.0]
-x_ub = [0.5, swi, 1.0, 1.0, 4.0, 4.0]
+x_init = param_all[:]
+x_lb = [0.05, 0.25, 0.05, 0.05, 1.0, 1.0]
+x_ub = [0.45,0.45, 1.0, 1.0, 4.0, 4.0]
 
 # algorithms
 # :LD_MMA
@@ -148,7 +149,7 @@ x_ub = [0.5, swi, 1.0, 1.0, 4.0, 4.0]
 # :LD_LBFGS
 # :GN_DIRECT
 # :GN_DIRECT_L
-opt_alg=:GN_DIRECT
+opt_alg=:LN_COBYLA
 
 opt1 = Opt(opt_alg, length(x_init)) # choose the algorithm
 lower_bounds!(opt1, x_lb)
@@ -162,3 +163,6 @@ min_objective!(opt1, obj_fun)
 param_plot = copy(param_all)
 param_plot[param_ind] = paramOpt
 plot_quick(param_plot)
+
+# optimized parameters:
+# 0.24774  0.315125  0.948653  0.972952  2.60396  2.92036
