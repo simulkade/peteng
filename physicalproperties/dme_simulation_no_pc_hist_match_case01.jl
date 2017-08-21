@@ -187,7 +187,7 @@ max_change_c = 0.1 # 10 % relative change
 max_change_s = 0.1 # 10 % relative change
 max_int_loop = 4
 t = 0.0
-oil_init=domainInt(1-sw_init) # initial oil volume in the core
+oil_init=domainInt(cellEval(ρ_oil, c_oil).*(1-sw_init)) # initial oil volume in the core
 rec_fact=zeros(1)
 dp_hist = zeros(1)
 t_s=zeros(1)
@@ -322,7 +322,7 @@ while t<t_final2
     t +=dt
     dt = dt0
     println("progress: $(t/t_final2*100) [%]")
-    rec_fact=push!(rec_fact, (oil_init-domainInt(1-sw_val))/oil_init)
+    rec_fact=push!(rec_fact, (oil_init-domainInt(cellEval(ρ_oil,c_val).*(1-sw_val)))/oil_init)
     t_s=push!(t_s, t)
     dp_hist=push!(dp_hist, 0.5*sum(p_val.value[1:2])-p0)
   end
