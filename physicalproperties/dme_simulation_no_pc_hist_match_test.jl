@@ -1,4 +1,4 @@
-using PyPlot, Polynomials, CoolProp, Roots
+using Plots, Polynomials, CoolProp, Roots
 using JFVM
 include("../functions/rel_perms_real.jl")
 
@@ -44,7 +44,7 @@ w_DME_plot = collect(linspace(minimum(w_DME_oil), maximum(w_DME_oil), 50))
 
 T0 = 70 + 273.15 # [K]
 p0 = 2000/14.7*1e5   # [Pa]
-mu_water = PropsSI("viscosity", "T", T0, "P", p0, "water") # [Pa.s]
+mu_water = 0.0004070634480875876 # PropsSI("viscosity", "T", T0, "P", p0, "water") # [Pa.s]
 mu_water_DME = [mu_water, 2*mu_water]
 w_DME_water = [0.0, maximum(w_DME_oil)/maximum(K_value_mass)]
 mu_water_fit = polyfit(w_DME_water, mu_water_DME, 1)
@@ -54,14 +54,21 @@ mu_water_fit = polyfit(w_DME_water, mu_water_DME, 1)
 
 # T = 70 + 273.15 # [K]
 # p = 2000/14.7*1e5   # [Pa]
-rho_water = PropsSI("D", "T", T0, "P", p0, "water")
+rho_water = 983.6319389796079 # PropsSI("D", "T", T0, "P", p0, "water")
 # Corey rel-perm parameters
 krw0 = 0.2
 kro0 = 0.8
 n_o  = 2.0
 n_w  = 2.0
 swc  = 0.08
-sor  = 0.3
+
+sor_min  = 0.05
+sor_max  = 0.3
+c_min = 0.0 # min DME mass fraction in oil
+c_max = 0.62 # max DME mass fraction in oil
+m_sor = -(sor_max-sor_min)/(c_max-c_min)
+sor_c = c -> m_sor*c+sor_max
+
 sorting_factor = 2.4
 pce = 100 # [Pa]
 pc0 = 1e5 # [Pa]
@@ -70,32 +77,11 @@ contact_angle = deg2rad(20) # [radian]
 perm_val  = 0.01e-12 # [m^2] permeability
 poros_val = 0.40     # [-] porosity
 
-KRW  = sw -> krw.(sw, krw0, sor, swc, n_w)
-dKRW = sw -> dkrwdsw.(sw, krw0, sor, swc, n_w)
-KRO  = sw -> kro.(sw, kro0, sor, swc, n_o)
-dKRO = sw -> dkrodsw.(sw, kro0, sor, swc, n_o)
-# PC   = sw -> pc_imb(sw, pce, swc, sor, teta=contact_angle,
-#                 labda=sorting_factor, b = 0.0, pc01=pc0, pc02=pc0)
-# dPC  = sw -> dpc_imb(sw, pce, swc, sor, teta=contact_angle,
-#                 labda1=sorting_factor, labda2=sorting_factor,
-#                 b = 1.0, pc01=pc0, pc02=pc0)
-# PC2  = sw -> pc_imb2(sw, pce, swc, sor, teta=contact_angle,
-#                 labda=sorting_factor, b = 0.0, pc_star1=pc0,
-#                 pc_star2=pc0)
-# dPC2 = sw -> dpc_imb2(sw, pce, swc, sor, teta=contact_angle,
-#                 labda1=sorting_factor, labda2=sorting_factor,
-#                 b = 1.0, pc_star1=pc0, pc_star2=pc0)
-PC  = sw -> pc_imb3.(sw, pce, swc, sor, teta=contact_angle,
-                labda=sorting_factor, b = 0.0, pc_star1=pc0,
-                pc_star2=pc0)
-dPC = sw -> dpc_imb3.(sw, pce, swc, sor, teta=contact_angle,
-                labda1=sorting_factor, labda2=sorting_factor,
-                b = 1.0, pc_star1=pc0, pc_star2=pc0)
-d2PC = sw -> d2pc_imb3.(sw, pce, swc, sor, teta=contact_angle,
-                labda1=sorting_factor, labda2=sorting_factor,
-                b = 1.0, pc_star1=pc0, pc_star2=pc0)
-# PCdrain2 = sw -> pc_drain2(sw, pce, swc, labda=sorting_factor, pc_star=pc0)
-# PCdrain3 = sw -> pc_drain3(sw, pce, swc, labda=sorting_factor, pc_star=pc0)
+KRW  = (sw, sor) -> krw.(sw, krw0, sor, swc, n_w)
+dKRW = (sw, sor) -> dkrwdsw.(sw, krw0, sor, swc, n_w)
+KRO  = (sw, sor) -> kro.(sw, kro0, sor, swc, n_o)
+dKRO = (sw, sor) -> dkrodsw.(sw, kro0, sor, swc, n_o)
+
 ρ_oil = w_DME_oil -> polyval(rho_fit, w_DME_oil)
 dρ_oil = w_DME_oil -> polyval(polyder(rho_fit), w_DME_oil)
 μ_water = w_DME_water -> polyval(mu_water_fit, w_DME_water)
@@ -116,17 +102,18 @@ sw_plot = collect(linspace(0,1,1000))
 #     [0,1], [0,0], "--")
 # xlabel("Water saturation (Sw) [-]")
 # ylabel("Capillary pressure (Pc) [Pa]")
-sw_imb_end = fzero(PC, [swc, 1-sor])
+# sw_imb_end = fzero(PC, [swc, 1-sor])
 # plot(sw_imb_end, 0, "o")
 # axis([0, 1, -pc0, pc0])
 # yscale("symlog")
 
-Lx   = 1.0 # [m]
+Lx   = 0.3 # [m]
 Nx  = 200  # number of grids in the x direction
 m   = createMesh1D(Nx, Lx)
 
 u_inj = 1.0/(3600*24) # 1 m/day to m/s injection velocity
-c_inj = 0.2 # DME mass fraction in the injected water
+c_inj1 = 0.0 # DME mass fraction in the injected water before water flood
+c_inj2 = 0.2 # DME mass fraction in the injected water after water flood
 
 BCp = createBC(m) # pressure boundary condition
 BCs = createBC(m) # saturation boundary condition
@@ -136,7 +123,7 @@ BCp.right.a[:] = 0.0
 BCp.right.b[:] = 1.0
 BCp.right.c[:] = p0
 
-BCp.left.a[:]  = perm_val/μ_water(c_inj)
+BCp.left.a[:]  = perm_val/μ_water(c_inj1)
 BCp.left.b[:]  = 0.0
 BCp.left.c[:]  = -u_inj
 
@@ -150,7 +137,7 @@ BCs.left.c[:]  = 1.0
 
 BCc.left.a[:]  = 0.0
 BCc.left.b[:]  = 1.0
-BCc.left.c[:]  = c_inj
+BCc.left.c[:]  = c_inj1
 
 # discretize
 M_bc_p, RHS_bc_p = boundaryConditionTerm(BCp)
@@ -168,6 +155,10 @@ sw_init = createCellVariable(m, sw0, BCs)
 p_val  = createCellVariable(m, p0, BCp)
 c_val  = createCellVariable(m, c0, BCc)
 sw_val = createCellVariable(m, sw0, BCs)
+c_face   = arithmeticMean(c_val)
+c_oil         = cellEval(w_oil, c_val) # [mass frac] DME concentration in oil
+c_oil_face    = faceEval(w_oil, c_face)
+sor_face      = faceEval(sor_c, c_oil_face)
 
 Δsw_init = sw_init - sw_val # we solve for this variable
 Δc_init  = c_init - c_val   # we solve for this variable
@@ -176,10 +167,14 @@ sw_val = createCellVariable(m, sw0, BCs)
 k = createCellVariable(m, perm_val)
 ϕ = createCellVariable(m, poros_val)
 
-n_pv    = 0.4 # number of injected pore volumes
-t_final = n_pv*Lx/(u_inj/poros_val) # [s] final time
-dt0     = t_final/n_pv/Nx/10.0 # [s] time step
-dt      = dt0
+n_pv1     = 0.1 # number of injected pore volumes
+t_final1  = n_pv1*Lx/(u_inj/poros_val) # [s] final time for water flood
+dt01      = t_final1/n_pv1/Nx/10 # [s] time step
+dt        = dt01
+n_pv2     = 0.2
+t_final2  = t_final1+n_pv1*Lx/(u_inj/poros_val) # [s] final time for DME flood
+dt02      = t_final2/n_pv2/Nx/10 # [s] time step
+dt0 = dt01
 
 # outside the loop: initialization
 uw       = gradientTerm(p_val) # only for initialization of the water velocity vector
@@ -190,9 +185,28 @@ tol_s = 1e-7
 tol_c = 1e-7
 max_change_c = 0.1 # 10 % relative change
 max_change_s = 0.1 # 10 % relative change
-max_int_loop = 5
-t = dt
-while t<t_final
+max_int_loop = 4
+t = 0.0
+oil_init=domainInt(cellEval(ρ_oil, c_oil).*(1-sw_init)) # initial oil volume in the core
+rec_fact=zeros(1)
+dp_hist = zeros(1)
+t_s=zeros(1)
+boundary_switch = true
+while t<t_final2
+  if t>t_final1 && boundary_switch
+    boundary_switch = false
+    dt0 = dt02
+    BCc.left.a[:]  = 0.0
+    BCc.left.b[:]  = 1.0
+    BCc.left.c[:]  = c_inj2
+    BCp.left.a[:]  = perm_val/μ_water(c_inj2)
+    BCp.left.b[:]  = 0.0
+    BCp.left.c[:]  = -u_inj
+    c_init  = createCellVariable(m, internalCells(c_val), BCc)
+    p_val   = createCellVariable(m, internalCells(p_val), BCp)
+    M_bc_p, RHS_bc_p = boundaryConditionTerm(BCp)
+    M_bc_c, RHS_bc_c = boundaryConditionTerm(BCc)
+  end
   error_s = 2*tol_s
   error_c = 2*tol_c
   loop_countor = 0
@@ -223,14 +237,14 @@ while t<t_final
     dρ_oil_face   = faceEval(dw_oil, c_face).*faceEval(dρ_oil, c_oil_face)
     dρc_oil_cell = dρ_oil_cell.*c_oil+cellEval(dw_oil, c_val).*rho_oil_cell
     dρc_oil_face = dρ_oil_face.*c_oil_face+faceEval(dw_oil, c_face).*rho_oil_face
-    dpc_face      = faceEval(dPC, sw_face)
-    d2pc_face      = faceEval(d2PC, sw_face)
+    # dpc_face      = faceEval(dPC, sw_face)
+    # d2pc_face      = faceEval(d2PC, sw_face)
 
     dρ_dμ_oil = (dρ_oil_face.*mu_oil_face-dμ_oil_face.*rho_oil_face)./(mu_oil_face.*mu_oil_face)
     dρc_dμ_oil = (dρc_oil_face.*mu_oil_face-dμ_oil_face.*rho_oil_face.*c_oil_face)./(mu_oil_face.*mu_oil_face)
 
-    krw_face      = faceEval(KRW,sw_face)
-    kro_face      = faceEval(KRO,sw_face)
+    krw_face      = faceEval(KRW,sw_face, sor_face)
+    kro_face      = faceEval(KRO,sw_face, sor_face)
 
     λ_w_face      = k_face.*krw_face./mu_water_face
     λ_o_face      = k_face.*kro_face./mu_oil_face
@@ -238,8 +252,8 @@ while t<t_final
     uo            = -λ_o_face.*∇p0
     ut            = uw + uo
 
-    dλ_w_face     = k_face.*faceEval(dKRW,sw_face)./mu_water_face
-    dλ_o_face     = k_face.*faceEval(dKRO,sw_face)./mu_oil_face
+    dλ_w_face     = k_face.*faceEval(dKRW,sw_face, sor_face)./mu_water_face
+    dλ_o_face     = k_face.*faceEval(dKRO,sw_face, sor_face)./mu_oil_face
 
     # λ_w_face     = harmonicMean(λ_w) # Wrong!
     # λ_o_face = harmonicMean(λ_o)     # Wrong!
@@ -306,12 +320,22 @@ while t<t_final
     p_init = copyCell(p_val)
     sw_init = copyCell(sw_val)
     c_init = copyCell(c_val)
+    sor_face      = faceEval(sor_c, c_oil_face)
     t +=dt
     dt = dt0
-    # println("time is $t [s]")
-    println("progress is $(t/t_final*100) [%]")
+    println("progress: $(t/t_final2*100) [%]")
+    rec_fact=push!(rec_fact, (oil_init-domainInt(cellEval(ρ_oil,c_val).*(1-sw_val)))/oil_init)
+    t_s=push!(t_s, t)
+    dp_hist=push!(dp_hist, 0.5*sum(p_val.value[1:2])-p0)
   end
 end
+# figure(1)
 visualizeCells(sw_init)
 visualizeCells(c_init)
-savefig("profile.png")
+# savefig("profile.png")
+# figure(2)
+plot(t_s, rec_fact)
+# savefig("recovery.png")
+# figure(3)
+plot(t_s, dp_hist)
+# savefig("dp.png")

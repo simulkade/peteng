@@ -1,6 +1,6 @@
 using PyPlot, Polynomials, CoolProp, Roots
 using JFVM
-include("../rel_perms_real.jl")
+include("../functions/rel_perms_real.jl")
 
 # some data
 MW_water = 0.018 # [kg/mol]

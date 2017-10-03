@@ -1,6 +1,6 @@
 using PyPlot, Polynomials, CoolProp, Roots
 using JFVM
-include("../rel_perms_real.jl")
+include("../functions/rel_perms_real.jl")
 
 # some data
 MW_water = 0.018 # [kg/mol]
@@ -223,6 +223,8 @@ for t = dt:dt:20*dt
     λ_w_face      = k_face.*krw_face./mu_water_face
     λ_o_face      = k_face.*kro_face./mu_oil_face
     uw            = -λ_w_face.*∇p0
+    uo            = -λ_o_face.*∇p0
+    ut            = uw + uo
 
     dλ_w_face     = k_face.*faceEval(dKRW,sw_face)./mu_water_face
     dλ_o_face     = k_face.*faceEval(dKRO,sw_face)./mu_oil_face
@@ -234,18 +236,23 @@ for t = dt:dt:20*dt
     # Δc_init  = c_init - c_val   # we solve for this variable
     # water mass balance (wmb)
     M_t_s_wmb, RHS_t_s_wmb = transientTerm(sw_init, dt, rho_water*ϕ)
-    M_d_p_wmb = diffusionTerm(-rho_water*λ_w_face)
-    M_a_s_wmb, RHS_a_s_wmb = convectionTvdTerm(-rho_water*dλ_w_face.*∇p0, sw_val, FL)
-    M_a_c_wmb, RHS_a_c_wmb = convectionTvdTerm(
-          rho_water*dμ_water_face./mu_water_face.*λ_w_face.*∇p0, c_val, FL)
+    M_d_p_wmb   = diffusionTerm(-rho_water*λ_w_face)
+    M_a_s_wmb   = convectionUpwindTerm(-rho_water*dλ_w_face.*∇p0, ut)
+    RHS_a_s_wmb = convectionTvdRHS(-rho_water*dλ_w_face.*∇p0, sw_val, FL, ut)
+    M_a_c_wmb   = convectionUpwindTerm(
+          rho_water*dμ_water_face./mu_water_face.*λ_w_face.*∇p0, ut)
+    RHS_a_c_wmb = convectionTvdRHS(
+        rho_water*dμ_water_face./mu_water_face.*λ_w_face.*∇p0, c_val, FL, ut)
 
     # oil mass balance (omb)
     M_t_s_omb, RHS_t_s_omb = transientTerm(sw_init, dt, -rho_oil_cell.*ϕ)
     M_t_c_omb, RHS_t_c_omb = transientTerm(c_init, dt, (1.0-sw_val).*dρ_oil_cell.*ϕ)
     M_d_p_omb = diffusionTerm(-rho_oil_face.*λ_o_face)
     # M_a_c_omb = convectionUpwindTerm(-dρ_dμ_oil.*k_face.*kro_face.*(∇p0+dpc_face.*∇s0))
-    M_a_c_omb, RHS_a_c_omb = convectionTvdTerm(-dρ_dμ_oil.*k_face.*kro_face.*∇p0, c_val, FL)
-    M_a_s_omb, RHS_a_s_omb = convectionTvdTerm(rho_oil_face.*(dλ_o_face.*∇p0), sw_val, FL)
+    M_a_c_omb = convectionUpwindTerm(-dρ_dμ_oil.*k_face.*kro_face.*∇p0, ut)
+    RHS_a_c_omb = convectionTvdRHS(-dρ_dμ_oil.*k_face.*kro_face.*∇p0, c_val, FL, ut)
+    M_a_s_omb = convectionUpwindTerm(rho_oil_face.*(dλ_o_face.*∇p0), ut)
+    RHS_a_s_omb = convectionTvdRHS(rho_oil_face.*(dλ_o_face.*∇p0), sw_val, FL, ut)
                                     # +(dλ_o_face.*dpc_face+λ_o_face.*d2pc_face).*∇s0))
     M_d_s_omb = 0.0 #diffusionTerm(-rho_oil_face.*λ_o_face.*dpc_face)
 
@@ -254,13 +261,18 @@ for t = dt:dt:20*dt
     M_t_c_dme, RHS_t_c_dme = transientTerm(c_init, dt, (rho_water*sw_val+
                                            (1.0-sw_val).*dρc_oil_cell).*ϕ)
     M_d_p_dme  = diffusionTerm(-rho_water*c_face.*λ_w_face-rho_oil_face.*c_oil_face.*λ_o_face)
-    M_a_s_dme, RHS_a_s_dme  = convectionTvdTerm(-(rho_water*c_face.*dλ_w_face+
-                                      rho_oil_face.*c_oil_face.*dλ_o_face).*∇p0, sw_val, FL)
+    M_a_s_dme  = convectionUpwindTerm(-(rho_water*c_face.*dλ_w_face+
+                                      rho_oil_face.*c_oil_face.*dλ_o_face).*∇p0, ut)
+    RHS_a_s_dme  = convectionTvdRHS(-(rho_water*c_face.*dλ_w_face+
+                                    rho_oil_face.*c_oil_face.*dλ_o_face).*∇p0, sw_val, FL, ut)
                                     #   -rho_oil_face.*c_oil_face.*
                                     #   (dλ_o_face.*dpc_face+λ_o_face.*d2pc_face).*∇s0)
-    M_a_c_dme, RHS_a_c_dme  = convectionTvdTerm(-(rho_water*(mu_water_face-dμ_water_face.*c_face)
+    M_a_c_dme  = convectionUpwindTerm(-(rho_water*(mu_water_face-dμ_water_face.*c_face)
                                       ./mu_water_face.*λ_w_face+
-                                        dρc_dμ_oil.*k_face.*kro_face).*∇p0, c_val, FL)
+                                        dρc_dμ_oil.*k_face.*kro_face).*∇p0, ut)
+    RHS_a_c_dme  = convectionTvdRHS(-(rho_water*(mu_water_face-dμ_water_face.*c_face)
+                                      ./mu_water_face.*λ_w_face+
+                                        dρc_dμ_oil.*k_face.*kro_face).*∇p0, c_val, FL, ut)
                                     #   -dρc_dμ_oil.*k_face.*kro_face.*dpc_face.*∇s0)
     M_d_s_dme  = 0.0 # diffusionTerm(-c_oil_face.*rho_oil_face.*λ_o_face.*dpc_face)
 
@@ -284,12 +296,13 @@ for t = dt:dt:20*dt
     error_c = sumabs(c_new[2:end-1]-c_val.value[2:end-1])
     # println(error_s)
     # println(error_c)
-    println("time: $t [s]")
+    # println("time: $t [s]")
     p_val.value[:] = p_new[:]
     sw_val.value[:] = s_new[:]
     c_val.value[:] = c_new[:]
 
   end
+
   p_init = copyCell(p_val)
   sw_init = copyCell(sw_val)
   c_init = copyCell(c_val)

@@ -1,6 +1,6 @@
 using PyPlot, Polynomials, CoolProp, Roots
 using JFVM
-include("../rel_perms_real.jl")
+include("../functions/rel_perms_real.jl")
 
 # some data
 MW_water = 0.018 # [kg/mol]
@@ -122,11 +122,11 @@ sw_imb_end = fzero(PC, [swc, 1-sor])
 # yscale("symlog")
 
 Lx   = 1.0 # [m]
-Nx  = 50  # number of grids in the x direction
+Nx  = 200  # number of grids in the x direction
 m   = createMesh1D(Nx, Lx)
 
 u_inj = 1.0/(3600*24) # 1 m/day to m/s injection velocity
-c_inj = 0.1 # DME mass fraction in the injected water
+c_inj = 0.2 # DME mass fraction in the injected water
 
 BCp = createBC(m) # pressure boundary condition
 BCs = createBC(m) # saturation boundary condition
@@ -176,7 +176,7 @@ sw_val = createCellVariable(m, sw0, BCs)
 k = createCellVariable(m, perm_val)
 ϕ = createCellVariable(m, poros_val)
 
-n_pv    = 0.2 # number of injected pore volumes
+n_pv    = 0.4 # number of injected pore volumes
 t_final = n_pv*Lx/(u_inj/poros_val) # [s] final time
 dt      = t_final/n_pv/Nx/10 # [s] time step
 
@@ -220,6 +220,9 @@ for t = dt:dt:t_final
         λ_w_face      = k_face.*krw_face./mu_water_face
         λ_o_face      = k_face.*kro_face./mu_oil_face
         uw            = -λ_w_face.*∇p0
+        uo            = -λ_o_face.*∇p0
+        ut            = uw + uo
+
         dλ_w_face     = k_face.*faceEval(dKRW,sw_face)./mu_water_face
         dλ_o_face     = k_face.*faceEval(dKRO,sw_face)./mu_oil_face
 
@@ -229,16 +232,16 @@ for t = dt:dt:t_final
         # water mass balance (wmb)
         M_t_s_wmb, RHS_t_s_wmb = transientTerm(sw_init, dt, rho_water*ϕ)
         M_d_p_wmb = diffusionTerm(-rho_water*λ_w_face)
-        M_a_s_wmb = convectionUpwindTerm(-rho_water*dλ_w_face.*∇p0)
-        M_a_c_wmb = convectionUpwindTerm(rho_water*dμ_water_face./mu_water_face.*λ_w_face.*∇p0)
+        M_a_s_wmb = convectionUpwindTerm(-rho_water*dλ_w_face.*∇p0, ut)
+        M_a_c_wmb = convectionUpwindTerm(rho_water*dμ_water_face./mu_water_face.*λ_w_face.*∇p0, ut)
 
         # oil mass balance (omb)
         M_t_s_omb, RHS_t_s_omb = transientTerm(sw_init, dt, -rho_oil_cell.*ϕ)
         M_t_c_omb, RHS_t_c_omb = transientTerm(c_init, dt, (1.0-sw_val).*dρ_oil_cell.*ϕ)
         M_d_p_omb = diffusionTerm(-rho_oil_face.*λ_o_face)
         # M_a_c_omb = convectionUpwindTerm(-dρ_dμ_oil.*k_face.*kro_face.*(∇p0+dpc_face.*∇s0))
-        M_a_c_omb = convectionUpwindTerm(-dρ_dμ_oil.*k_face.*kro_face.*∇p0)
-        M_a_s_omb = convectionUpwindTerm(-rho_oil_face.*(dλ_o_face.*∇p0))
+        M_a_c_omb = convectionUpwindTerm(-dρ_dμ_oil.*k_face.*kro_face.*∇p0, ut)
+        M_a_s_omb = convectionUpwindTerm(-rho_oil_face.*(dλ_o_face.*∇p0), ut)
                                         # +(dλ_o_face.*dpc_face+λ_o_face.*d2pc_face).*∇s0))
         M_d_s_omb = 0.0 #diffusionTerm(-rho_oil_face.*λ_o_face.*dpc_face)
 
@@ -248,12 +251,12 @@ for t = dt:dt:t_final
                                                (1.0-sw_val).*dρc_oil_cell).*ϕ)
         M_d_p_dme  = diffusionTerm(-rho_water*c_face.*λ_w_face-rho_oil_face.*c_oil_face.*λ_o_face)
         M_a_s_dme  = convectionUpwindTerm(-(rho_water*c_face.*dλ_w_face+
-                                          rho_oil_face.*c_oil_face.*dλ_o_face).*∇p0)
+                                          rho_oil_face.*c_oil_face.*dλ_o_face).*∇p0, ut)
                                         #   -rho_oil_face.*c_oil_face.*
                                         #   (dλ_o_face.*dpc_face+λ_o_face.*d2pc_face).*∇s0)
         M_a_c_dme  = convectionUpwindTerm(-(rho_water*(mu_water_face-dμ_water_face.*c_face)
                                           ./mu_water_face.*λ_w_face+
-                                            dρc_dμ_oil.*k_face.*kro_face).*∇p0)
+                                            dρc_dμ_oil.*k_face.*kro_face).*∇p0, ut)
                                         #   -dρc_dμ_oil.*k_face.*kro_face.*dpc_face.*∇s0)
         M_d_s_dme  = 0.0 # diffusionTerm(-c_oil_face.*rho_oil_face.*λ_o_face.*dpc_face)
 
@@ -276,7 +279,7 @@ for t = dt:dt:t_final
         # solve for concentration
         M = M_bc_c+M_t_c_dme+M_a_c_dme
 
-        RHS = RHS_bc_c+RHS_t_c_dme+M_a_c_dme*c_val.value[:]
+        RHS = RHS_bc_c+RHS_t_c_dme +M_a_c_dme*c_val.value[:]
 
         # M = [M_bc_p+M_d_p_wmb   M_t_s_wmb+M_a_s_wmb    M_a_c_wmb;
         #     M_d_p_omb   M_bc_s+M_t_s_omb+M_a_s_omb+M_d_s_omb    M_t_c_omb+M_a_c_omb;
