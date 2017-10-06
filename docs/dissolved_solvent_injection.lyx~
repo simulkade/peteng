@@ -288,7 +288,14 @@ S_{or}=mKc_{w}+S_{or,max}.
 
 \end_inset
 
-The values of the constants are reported in Table .
+The values of the constants are reported in Table 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "tab:Thermodynamic-and-transport"
+
+\end_inset
+
+.
 \end_layout
 
 \begin_layout Standard
@@ -643,7 +650,7 @@ Oil viscosity
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+Oil relative permeability endpoint
 \end_layout
 
 \end_inset
@@ -684,7 +691,7 @@ Oil viscosity
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+Water relative permeability endpoint
 \end_layout
 
 \end_inset
@@ -725,7 +732,7 @@ Oil viscosity
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+Oil relative permeability exponent
 \end_layout
 
 \end_inset
@@ -766,7 +773,7 @@ Oil viscosity
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+Water relative permeability exponent
 \end_layout
 
 \end_inset
