@@ -976,6 +976,24 @@ Distribution coefficient
 \end_layout
 
 \begin_layout Subsection
+Initial and boundary conditions
+\end_layout
+
+\begin_layout Standard
+The porous medium is initially saturated with oil and water, with a water
+ saturation of 
+\begin_inset Formula $S_{w0}=S_{wc}$
+\end_inset
+
+.
+ Initially, the concentration of solvent in the system is zero, 
+\begin_inset Formula $c_{w0}=0$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection
 Equations and unknowns
 \end_layout
 
