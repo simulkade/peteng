@@ -325,7 +325,7 @@ Thermodynamic and transport properties of the DME-enhanced water flooding
 
 \begin_layout Plain Layout
 \begin_inset Tabular
-<lyxtabular version="3" rows="15" columns="4">
+<lyxtabular version="3" rows="16" columns="4">
 <features tabularvalignment="middle">
 <column alignment="center" valignment="top">
 <column alignment="center" valignment="top">
@@ -923,7 +923,7 @@ Slope of the residual oil saturation change with solvent concentration
 </cell>
 </row>
 <row>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -935,7 +935,7 @@ Slope of the residual oil saturation change with solvent concentration
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -944,7 +944,7 @@ Slope of the residual oil saturation change with solvent concentration
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
@@ -953,11 +953,52 @@ Slope of the residual oil saturation change with solvent concentration
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
 Distribution coefficient
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $u$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+1.0
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+m/day
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+Darcy velocity
 \end_layout
 
 \end_inset
@@ -988,6 +1029,15 @@ The porous medium is initially saturated with oil and water, with a water
 .
  Initially, the concentration of solvent in the system is zero, 
 \begin_inset Formula $c_{w0}=0$
+\end_inset
+
+.
+ Water in injected from the left boundary with a saturation of one (
+\begin_inset Formula $S_{w,b}=1.0$
+\end_inset
+
+) and with a solvent concentration (mass fraction) of 
+\begin_inset Formula $c_{w}=0.2$
 \end_inset
 
 .
