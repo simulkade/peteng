@@ -15,12 +15,14 @@ end
 # domain
 Lx = 1.0
 Ly = 1.0
-Nx = 10
+Nx = 50
 Ny = 10
-m = createMesh1D(Nx, Lx)
+m = createMesh2D(Nx, Ny, Lx, Ly)
 
-# physical properties
+# (petro)physical properties
 mu_oil = 10e-3 # Pa.s
+perm = 0.1e-12
+poros = 0.3
 
 # rel-perms
 krw0 = 0.2
@@ -45,33 +47,44 @@ cs_0 = 10.0  # initial salt concentration kg/m^3
 cs_inj = 5.0 # injected salt concentration
 
 
-φ = createCellVariable(m, 0.3) # porosity
-k = createCellVariable(m, 0.1e-12) # m^2 permeability
+φ = createCellVariable(m, poros) # porosity
+k = createCellVariable(m, perm) # m^2 permeability
 k_face   = harmonicMean(k) # harmonic averaging for perm
 u_inj = 1e-5 # m/s injection Darcy velocity
 pv_inj = 0.3 # injected pore volumes
-t_final = pv_inj*Lx/(u_inj/φ) # s final time
+t_final = pv_inj*Lx/(u_inj/poros) # s final time
 dt0 = t_final/Nx # s time step
 dt  = t_final/Nx # variable time step
 
 BCp = createBC(m)   # pressure boundary
+BCp.left.a[:] = perm/polymer_viscosity(cs_inj, cp_inj)
+BCp.left.b[:] = 0.0
+BCp.left.c[:] = -u_inj
+BCp.right.a[:] = 0.0
+BCp.right.b[:] = 1.0
+BCp.right.c[:] = p_res
+M_bc_p, RHS_bc_p = boundaryConditionTerm(BCp)
+
 # saturation boundary
 BCs = createBC(m)
 BCs.left.a[:] = 0.0
 BCs.left.b[:] = 1.0
 BCs.left.c[:] = sw_inj # injected water saturation
+M_bc_s, RHS_bc_s = boundaryConditionTerm(BCs)
 
 # salt concentration boundary
 BCcs = createBC(m)
 BCcs.left.a[:] = 0.0
 BCcs.left.b[:] = 1.0
 BCcs.left.c[:] = cs_inj # injected salt concentration
+M_bc_cs, RHS_bc_cs = boundaryConditionTerm(BCcs)
 
 # polymer concentration boundary
 BCcp = createBC(m)
 BCcp.left.a[:] = 0.0
 BCcp.left.b[:] = 1.0
 BCcp.left.c[:] = cp_inj # injected polymer concentration
+M_bc_cp, RHS_bc_cp = boundaryConditionTerm(BCcp)
 
 # initial conditions
 p_init  = createCellVariable(m, p_res)
@@ -84,10 +97,10 @@ cs_val = createCellVariable(m, cs_0)
 cp_val = createCellVariable(m, cp_0)
 
 uw       = -gradientTerm(p_val)
-M_bc_p, RHS_bc_p = boundaryConditionTerm(BCp)
-M_bc_s, RHS_bc_s = boundaryConditionTerm(BCs)
-M_bc_c, RHS_bc_c = boundaryConditionTerm(BCc)
-M_bc_t, RHS_bc_t = boundaryConditionTerm(BCt)
+# M_bc_p, RHS_bc_p = boundaryConditionTerm(BCp)
+# M_bc_s, RHS_bc_s = boundaryConditionTerm(BCs)
+# M_bc_c, RHS_bc_c = boundaryConditionTerm(BCcs)
+# M_bc_t, RHS_bc_t = boundaryConditionTerm(BCt)
 tol_s = 1e-7
 tol_c = 1e-7
 max_int_loop = 40
@@ -98,7 +111,7 @@ while t<t_final
     error_s = 2*tol_s
     error_c = 2*tol_c
     loop_countor = 0
-    while error_s>tol_s || error_c>tol_c
+    while error_s>tol_s
         loop_countor += 1
         if loop_countor > max_int_loop
         sw_val = copyCell(sw_init)
@@ -116,7 +129,7 @@ while t<t_final
         sw_face       = upwindMean(sw_val, uw)
 
         mu_water_face = faceEval(polymer_viscosity, cs_face, cp_face)
-
+        # println("visc")
         krw_face      = faceEval(KRW,sw_face)
         kro_face      = faceEval(KRO,sw_face)
 
@@ -155,7 +168,7 @@ while t<t_final
         error_s = sum(abs, reshape(s_new, Nx+2, Ny+2)[2:end-1, 2:end-1]-internalCells(sw_val))
         for i in 1:4
             # salt transport
-            M_t_cs, RHS_t_cs = transientTerm(cs_init, dt, sw_val.*ϕ)
+            M_t_cs, RHS_t_cs = transientTerm(cs_init, dt, sw_val.*φ)
             M_s_cs          = linearSourceTerm(φ.*(sw_val-sw_init)/dt)
             M_a_cs, RHS_a_cs = convectionTvdTerm(uw, cs_val, FL, ut)
             # M_a_t = convectionUpwindTerm(uw, ut)
@@ -163,16 +176,18 @@ while t<t_final
                 RHS_a_cs+RHS_bc_cs+RHS_t_cs)
 
             # polymer transport
-            M_t_cp, RHS_t_cp = transientTerm(cp_init, dt, sw_val.*ϕ)
+            M_t_cp, RHS_t_cp = transientTerm(cp_init, dt, sw_val.*φ)
             M_s_cp          = linearSourceTerm(φ.*(sw_val-sw_init)/dt)
             M_a_cp, RHS_a_cp = convectionTvdTerm(uw, cp_val, FL, ut)
             # M_a_t = convectionUpwindTerm(uw, ut)
             cp_val = solveLinearPDE(m, M_t_cp+M_s_cp+M_a_cp+M_bc_cp,
             RHS_a_cp+RHS_bc_cp+RHS_t_cp)
+
+            # error_c = sum(abs, internalCells(cp_new)-internalCells(cp_val))            
         end
 
 
-      error_c = sum(abs, reshape(c_new, Nx+2, Ny+2)[2:end-1, 2:end-1]-internalCells(c_val))
+    #   error_c = sum(abs, internalCells(cp_val)-internalCells(cp_val))
       # println(error_s)
       # println(error_c)
       # w_p = 0.9
@@ -206,39 +221,18 @@ while t<t_final
       sw_val = createCellVariable(m, internalCells(sw_val), BCs)
       # GR.plot(sw_val.value)
       # sw_val.value[:] = w_sw*s_new[:]+(1-w_sw)*sw_val.value[:]
-      c_val.value[:] = c_new[:]
-  
     end
     if loop_countor<max_int_loop
-      for tracer_count = 1:4
-          # tracer calculation
-          M_t_t, RHS_t_t = transientTerm(c_t_init, dt, sw_val.*ϕ)
-          M_s_t          = linearSourceTerm(ϕ.*(sw_val-sw_init)/dt)
-          M_a_t, RHS_a_t = convectionTvdTerm(uw, c_t_val, FL, ut)
-          # M_a_t = convectionUpwindTerm(uw, ut)
-          c_t_val = solveLinearPDE(m, M_t_t+M_s_t+M_a_t+M_bc_t,
-              RHS_a_t+RHS_bc_t+RHS_t_t)
-      end
-      p_init = copyCell(p_val)
-      sw_init = copyCell(sw_val)
-      c_init = copyCell(c_val)
-      c_t_init = copyCell(c_t_val)
-      if t>t_save
-          t_save += dt_save
-          save_count +=1
-          save("results2D/t_$save_count.jld", "t", t, "p", p_val, "c", c_val,
-          "c_oil", c_oil, "sw", sw_val, "c_tracer", c_t_val)
-      end
-      sor_face      = faceEval(sor_c, c_oil_face)
-      t +=dt
-      dt = dt0
-      println("progress: $(t/(t_final1+t_final2)*100) [%]")
-      rec_fact=push!(rec_fact, (oil_init-domainInt(cellEval(ρ_oil,c_val).*(1-sw_val)))/oil_init)
-      t_s=push!(t_s, t)
-      # dp_hist=push!(dp_hist, 0.5*sum(p_val.value[1:2])-p0)
+        p_init = copyCell(p_val)
+        sw_init = copyCell(sw_val)
+        cp_init = copyCell(cp_val)
+        cs_init = copyCell(cs_val)
+        
+        t +=dt
+        dt = dt0
+        println("progress: $(t/(t_final)*100) [%]")
     end
   end
-  save("results2D/rec_fact.jld", "t", t_s, "pv", t_s/(t_final1+t_final2)*(n_pv1+n_pv2), "R", rec_fact)
   # JLD.save("results2D/all_data_heterogen_wf.jld", "p", p_val, "c", c_val,
   # "c_oil", c_oil, "sw", sw_val, "c_tracer", c_t_val)
   # figure(1)
@@ -246,10 +240,10 @@ while t<t_final
   visualizeCells(sw_init)
   # title("Sw")
   figure()
-  visualizeCells(c_init)
+  visualizeCells(cs_init)
   # title("c_DME")
   figure()
-  visualizeCells(c_t_init)
+  visualizeCells(cp_init)
   # title("c_tracer")
   # savefig("profile.png")
   # figure(2)
@@ -259,5 +253,5 @@ while t<t_final
   # plot(t_s, dp_hist)
   # savefig("dp.png")
   # PyPlot.pcolormesh(sw_val.value[2:end-1, 2:end-1]', cmap="YlGnBu", shading = "gouraud", vmin=0, vmax=1)
-  end
+
   
