@@ -172,32 +172,42 @@ while t<t_final
         # water mass balance (wmb)
         M_t_s_wmb, RHS_t_s_wmb = transientTerm(sw_init, dt, φ)
         M_d_p_wmb = diffusionTerm(-λ_w_face)
-        M_a_s_wmb = convectionUpwindTerm(-dλ_w_face.*∇p0, ut)
-        M_a_cs_wmb = convectionUpwindTerm(-k_face.*krw_face.*d_mu_dcs.*∇p0, ut)
-        M_a_cp_wmb = convectionUpwindTerm(-k_face.*krw_face.*d_mu_dcp.*∇p0, ut)
+        # M_a_s_wmb = convectionUpwindTerm(-dλ_w_face.*∇p0, ut)
+        M_a_s_wmb, RHS_a_s_wmb = convectionTvdTerm(-dλ_w_face.*∇p0, sw_val, FL, ut)
+        # M_a_cs_wmb = convectionUpwindTerm(-k_face.*krw_face.*d_mu_dcs.*∇p0, ut)
+        M_a_cs_wmb, RHS_a_cs_wmb = convectionTvdTerm(-k_face.*krw_face.*d_mu_dcs.*∇p0, cs_val, FL, ut)
+        # M_a_cp_wmb = convectionUpwindTerm(-k_face.*krw_face.*d_mu_dcp.*∇p0, ut)
+        M_a_cp_wmb, RHS_a_cp_wmb = convectionTvdTerm(-k_face.*krw_face.*d_mu_dcp.*∇p0, cp_val, FL, ut)
 
         # oil mass balance (omb)
         M_t_s_omb, RHS_t_s_omb = transientTerm(sw_init, dt, -φ)
         M_d_p_omb = diffusionTerm(-λ_o_face)
-        M_a_s_omb = convectionUpwindTerm(-(dλ_o_face.*∇p0), ut)
+        # M_a_s_omb = convectionUpwindTerm(-(dλ_o_face.*∇p0), ut)
+        M_a_s_omb, RHS_a_s_omb = convectionTvdTerm(-(dλ_o_face.*∇p0), sw_val, FL, ut)
 
         # salt mass balance
         M_t_cs_smb, RHS_t_cs_smb = transientTerm(cs_init, dt, sw_val.*φ)
         M_t_s_smb, RHS_t_s_smb = transientTerm(sw_init, dt, cs_val.*φ)
         # M_a_cs_smb, RHS_a_cs_smb = convectionTvdTerm(uw, cs_val, FL, ut)
-        M_a_s_smb = convectionUpwindTerm(-dλ_w_face.*cs_face.*∇p0, ut)        
+        # M_a_s_smb = convectionUpwindTerm(-dλ_w_face.*cs_face.*∇p0, ut)
+        M_a_s_smb, RHS_a_s_smb = convectionTvdTerm(-dλ_w_face.*cs_face.*∇p0, sw_val, FL, ut)        
         M_d_p_smb = diffusionTerm(-λ_w_face.*cs_face)
-        M_a_cs_smb = convectionUpwindTerm(-k_face.*krw_face.*d_cs_mu_dcs.*∇p0, ut)
-        M_a_cp_smb = convectionUpwindTerm(-k_face.*krw_face.*d_cs_mu_dcp.*∇p0, ut)
+        # M_a_cs_smb = convectionUpwindTerm(-k_face.*krw_face.*d_cs_mu_dcs.*∇p0, ut)
+        # M_a_cp_smb = convectionUpwindTerm(-k_face.*krw_face.*d_cs_mu_dcp.*∇p0, ut)
+        M_a_cs_smb, RHS_a_cs_smb = convectionTvdTerm(-k_face.*krw_face.*d_cs_mu_dcs.*∇p0, cs_val, FL, ut)
+        M_a_cp_smb, RHS_a_cp_smb = convectionTvdTerm(-k_face.*krw_face.*d_cs_mu_dcp.*∇p0, cp_val, FL, ut)
 
         # polymer mass balance
         M_t_cp_pmb, RHS_t_cp_pmb = transientTerm(cp_init, dt, sw_val.*φ)
         M_t_s_pmb, RHS_t_s_pmb = transientTerm(sw_init, dt, cp_val.*φ)
-        M_a_s_pmb = convectionUpwindTerm(-dλ_w_face.*cp_face.*∇p0, ut)
+        # M_a_s_pmb = convectionUpwindTerm(-dλ_w_face.*cp_face.*∇p0, ut)
+        M_a_s_pmb, RHS_a_s_pmb = convectionTvdTerm(-dλ_w_face.*cp_face.*∇p0, sw_val, FL, ut)
         # M_a_cp, RHS_a_cp = convectionTvdTerm(uw, cp_val, FL, ut)
         M_d_p_pmb = diffusionTerm(-λ_w_face.*cp_face)
-        M_a_cs_pmb = convectionUpwindTerm(-k_face.*krw_face.*d_cp_mu_dcs.*∇p0, ut)
-        M_a_cp_pmb = convectionUpwindTerm(-k_face.*krw_face.*d_cp_mu_dcp.*∇p0, ut)
+        # M_a_cs_pmb = convectionUpwindTerm(-k_face.*krw_face.*d_cp_mu_dcs.*∇p0, ut)
+        # M_a_cp_pmb = convectionUpwindTerm(-k_face.*krw_face.*d_cp_mu_dcp.*∇p0, ut)
+        M_a_cs_pmb, RHS_a_cs_pmb = convectionTvdTerm(-k_face.*krw_face.*d_cp_mu_dcs.*∇p0, cs_val, FL, ut)
+        M_a_cp_pmb, RHS_a_cp_pmb = convectionTvdTerm(-k_face.*krw_face.*d_cp_mu_dcp.*∇p0, cp_val, FL, ut)
 
         # create the PDE system M [p;s;c]=RHS
         # x_val = [p_val.value[:]; sw_val.value[:]; c_val.value[:]]
@@ -206,10 +216,10 @@ while t<t_final
             M_d_p_smb  M_a_s_smb+M_t_s_smb  M_a_cs_smb+M_t_cs_smb+M_bc_cs  M_a_cp_smb;
             M_d_p_pmb  M_a_s_pmb+M_t_s_pmb  M_a_cs_pmb  M_t_cp_pmb+M_bc_cp+M_a_cp_pmb] 
 
-        RHS = [RHS_bc_p+RHS_t_s_wmb+M_a_s_wmb*sw_val.value[:]+M_a_cs_wmb*cs_val.value[:]+M_a_cp_wmb*cp_val.value[:];
-               RHS_bc_s+RHS_t_s_omb+(M_a_s_omb)*sw_val.value[:];
-               RHS_t_cs_smb+RHS_t_s_smb+RHS_bc_cs+M_a_s_smb*sw_val.value[:]+M_a_cs_smb*cs_val.value[:]+M_a_cp_smb*cp_val.value[:];
-               RHS_t_cp_pmb+RHS_t_s_pmb+RHS_bc_cp+M_a_s_pmb*sw_val.value[:]+M_a_cs_pmb*cs_val.value[:]+M_a_cp_pmb*cp_val.value[:]]
+        RHS = [RHS_bc_p+RHS_t_s_wmb+RHS_a_s_wmb+RHS_a_cs_wmb+RHS_a_cp_wmb+M_a_s_wmb*sw_val.value[:]+M_a_cs_wmb*cs_val.value[:]+M_a_cp_wmb*cp_val.value[:];
+               RHS_bc_s+RHS_t_s_omb+RHS_a_s_omb+(M_a_s_omb)*sw_val.value[:];
+               RHS_t_cs_smb+RHS_t_s_smb+RHS_bc_cs+RHS_a_s_smb+RHS_a_cs_smb+RHS_a_cp_smb+M_a_s_smb*sw_val.value[:]+M_a_cs_smb*cs_val.value[:]+M_a_cp_smb*cp_val.value[:];
+               RHS_t_cp_pmb+RHS_t_s_pmb+RHS_bc_cp+RHS_a_s_pmb+RHS_a_cs_pmb+RHS_a_cp_pmb+M_a_s_pmb*sw_val.value[:]+M_a_cs_pmb*cs_val.value[:]+M_a_cp_pmb*cp_val.value[:]]
 
         # x_sol = solveLinearPDE(m, M, RHS)
         x_sol = 0
