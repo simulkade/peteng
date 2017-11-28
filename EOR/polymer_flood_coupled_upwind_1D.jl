@@ -127,9 +127,9 @@ FL = fluxLimiter("SUPERBEE") # flux limiter
 
 while t<t_final
     error_s = 2*tol_s
-    error_c = 2*tol_c
+    error_cp = 2*tol_c
     loop_countor = 0
-    while error_s>tol_s
+    while (error_s>tol_s) || (error_cp>tol_c)
         loop_countor += 1
         if loop_countor > max_int_loop
             sw_val = copyCell(sw_init)
@@ -173,8 +173,8 @@ while t<t_final
         M_t_s_wmb, RHS_t_s_wmb = transientTerm(sw_init, dt, φ)
         M_d_p_wmb = diffusionTerm(-λ_w_face)
         M_a_s_wmb = convectionUpwindTerm(-dλ_w_face.*∇p0, ut)
-        M_a_cs_wmb = convectionUpwindTerm(-k_face.*d_mu_dcs.*∇p0, ut)
-        M_a_cp_wmb = convectionUpwindTerm(-k_face.*d_mu_dcp.*∇p0, ut)
+        M_a_cs_wmb = convectionUpwindTerm(-k_face.*krw_face.*d_mu_dcs.*∇p0, ut)
+        M_a_cp_wmb = convectionUpwindTerm(-k_face.*krw_face.*d_mu_dcp.*∇p0, ut)
 
         # oil mass balance (omb)
         M_t_s_omb, RHS_t_s_omb = transientTerm(sw_init, dt, -φ)
@@ -186,16 +186,16 @@ while t<t_final
         # M_a_cs_smb, RHS_a_cs_smb = convectionTvdTerm(uw, cs_val, FL, ut)
         M_a_s_smb = convectionUpwindTerm(-dλ_w_face.*cs_face.*∇p0, ut)        
         M_d_p_smb = diffusionTerm(-λ_w_face.*cs_face)
-        M_a_cs_smb = convectionUpwindTerm(-k_face.*d_cs_mu_dcs.*∇p0, ut)
-        M_a_cp_smb = convectionUpwindTerm(-k_face.*d_cs_mu_dcp.*∇p0, ut)
+        M_a_cs_smb = convectionUpwindTerm(-k_face.*krw_face.*d_cs_mu_dcs.*∇p0, ut)
+        M_a_cp_smb = convectionUpwindTerm(-k_face.*krw_face.*d_cs_mu_dcp.*∇p0, ut)
 
         # polymer mass balance
         M_t_cp_pmb, RHS_t_cp_pmb = transientTerm(cp_init, dt, sw_val.*φ)
         M_a_s_pmb = convectionUpwindTerm(-dλ_w_face.*cp_face.*∇p0, ut)        
         # M_a_cp, RHS_a_cp = convectionTvdTerm(uw, cp_val, FL, ut)
         M_d_p_pmb = diffusionTerm(-λ_w_face.*cp_face)
-        M_a_cs_pmb = convectionUpwindTerm(-k_face.*d_cp_mu_dcs.*∇p0, ut)
-        M_a_cp_pmb = convectionUpwindTerm(-k_face.*d_cp_mu_dcp.*∇p0, ut)
+        M_a_cs_pmb = convectionUpwindTerm(-k_face.*krw_face.*d_cp_mu_dcs.*∇p0, ut)
+        M_a_cp_pmb = convectionUpwindTerm(-k_face.*krw_face.*d_cp_mu_dcp.*∇p0, ut)
 
         # create the PDE system M [p;s;c]=RHS
         # x_val = [p_val.value[:]; sw_val.value[:]; c_val.value[:]]
@@ -218,7 +218,7 @@ while t<t_final
         cp_new = x_sol[(1:Nx+2)+3*(Nx+2)]
 
         error_s = sum(abs, s_new[2:end-1]-internalCells(sw_val))
-        
+        error_cp = sum(abs, cp_new[2:end-1]-internalCells(cp_val))
 
         #   error_c = sum(abs, internalCells(cp_val)-internalCells(cp_val))
         # println(error_s)
@@ -258,8 +258,8 @@ while t<t_final
         cs_val.value[:] = cs_new[:]
         cp_val.value[:] = cp_new[:]
 
-        # cs_val = createCellVariable(m, cs_new[2:end-1], BCcs)
-        # cp_val = createCellVariable(m, cp_new[2:end-1], BCcp)
+        cs_val = createCellVariable(m, cs_new[2:end-1], BCcs)
+        cp_val = createCellVariable(m, cp_new[2:end-1], BCcp)
 
         # GR.plot(sw_val.value)
         # sw_val.value[:] = w_sw*s_new[:]+(1-w_sw)*sw_val.value[:]
