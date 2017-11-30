@@ -1,4 +1,5 @@
 % include('../functions/rel_perms_real.jl')
+clc
 
 a1 = 4.0;
 a2 = 0.0;
@@ -14,9 +15,9 @@ dpolymer_viscosity_dcp = @(cs, cp)(mu_w*cs.^sp.*(a1+2*a2*cp+3*a3*cp.*cp));
 % domain
 Lx = 1.0;
 Ly = 1.0;
-Nx = 100;
-Ny = 10;
-m = createMesh1D(Nx, Lx);
+Nx = 50;
+Ny = 50;
+m = createMesh2D(Nx, Ny, Lx, Ly);
 
 % (petro)physical properties
 mu_oil = 10e-3; % Pa.s
@@ -47,7 +48,7 @@ cs_0 = 10.0;  % initial salt concentration kg/m^3
 cs_inj = 5.0; % injected salt concentration
 
 
-phi = createCellVariable(m, poros); % porosity
+phi = createCellVariable(m, poros*(ones(Nx,Ny)+rand(Nx,Ny)/100)); % porosity
 k = createCellVariable(m, perm); % m^2 permeability
 k_face   = harmonicMean(k); % harmonic averaging for perm
 u_inj = 1e-5; % m/s injection Darcy velocity
@@ -184,7 +185,7 @@ while t<t_final
         % create the PDE system M (p;s;c)=RHS
         % x_val = (p_val.value(:); sw_val.value(:); c_val.value(:))
         M = [M_bc_p+M_d_p_wmb,   M_t_s_wmb+M_a_s_wmb,  M_a_cs_wmb,  M_a_cp_wmb;
-            M_d_p_omb,   M_bc_s+M_t_s_omb+M_a_s_omb,  zeros(Nx+2,Nx+2),  zeros(Nx+2,Nx+2);
+            M_d_p_omb,   M_bc_s+M_t_s_omb+M_a_s_omb,  zeros((Nx+2)*(Ny+2),(Nx+2)*(Ny+2)),  zeros((Nx+2)*(Ny+2),(Nx+2)*(Ny+2));
             M_d_p_smb,  M_a_s_smb+M_t_s_smb,  M_a_cs_smb+M_t_cs_smb+M_bc_cs,  M_a_cp_smb;
             M_d_p_pmb,  M_a_s_pmb+M_t_s_pmb,  M_a_cs_pmb,  M_t_cp_pmb+M_bc_cp+M_a_cp_pmb];
 
@@ -202,13 +203,13 @@ while t<t_final
             continue
         end
 
-        p_new = x_sol(1:Nx+2);
-        s_new = x_sol((1:Nx+2)+(Nx+2));
-        cs_new = x_sol((1:Nx+2)+2*(Nx+2));
-        cp_new = x_sol((1:Nx+2)+3*(Nx+2));
+        p_new = reshape(x_sol(1:(Nx+2)*(Ny+2)), Nx+2, Ny+2);
+        s_new = reshape(x_sol((1:(Nx+2)*(Ny+2))+(Nx+2)*(Ny+2)), Nx+2, Ny+2);
+        cs_new = reshape(x_sol((1:(Nx+2)*(Ny+2))+2*(Nx+2)*(Ny+2)), Nx+2, Ny+2);
+        cp_new = reshape(x_sol((1:(Nx+2)*(Ny+2))+3*(Nx+2)*(Ny+2)), Nx+2, Ny+2);
 
-        error_s = sumabs(s_new(2:end-1)-internalCells(sw_val));
-        error_cp = sumabs(cp_new(2:end-1)-internalCells(cp_val));
+        error_s = sumabs(s_new(2:end-1, 2:end-1)-internalCells(sw_val));
+        error_cp = sumabs(cp_new(2:end-1, 2:end-1)-internalCells(cp_val));
 
         %   error_c = sum(abs, internalCells(cp_val)-internalCells(cp_val))
         % println(error_s)
@@ -248,8 +249,8 @@ while t<t_final
         cs_val.value(:) = cs_new(:);
         cp_val.value(:) = cp_new(:);
 
-        cs_val = createCellVariable(m, cs_new(2:end-1), BCcs);
-        cp_val = createCellVariable(m, cp_new(2:end-1), BCcp);
+        cs_val = createCellVariable(m, cs_new, BCcs);
+        cp_val = createCellVariable(m, cp_new, BCcp);
 
         % GR.plot(sw_val.value)
         % sw_val.value(:) = w_sw*s_new(:)+(1-w_sw)*sw_val.value(:)
@@ -272,8 +273,10 @@ end
 figure(1)
 visualizeCells(sw_init)
 % title('Sw')
+figure(2)
 visualizeCells(cs_init)
 % title('c_DME')
+figure(3)
 visualizeCells(cp_init)
 % title('c_tracer')
 % savefig('profile.png')
