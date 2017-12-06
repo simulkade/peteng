@@ -16,8 +16,8 @@ n_w  = 2.0
 swc  = 0.08
 sor  = 0.3
 sorting_factor = 2.4
-pce = 1e4 # [Pa]
-pc0 = 10e5 # [Pa]
+pce = 1e5 # [Pa]
+pc0 = 50*pce # [Pa]
 contact_angle = deg2rad(20) # [radian]
 
 perm_val  = 0.01e-12 # [m^2] permeability
@@ -158,11 +158,11 @@ while t<t_final
         M_t_s_omb, RHS_t_s_omb = transientTerm(sw_init, dt, -rho_oil*ϕ)
         M_d_p_omb = diffusionTerm(-rho_oil*λ_o_face)
         M_a_s_omb = convectionUpwindTerm(-rho_oil*dλ_o_face.*(∇p0+dpc_face.*∇s0), ut)
-        RHS_d_s_omb = 0.0 # divergenceTerm(rho_oil*λ_o_face.*dpc_face.*∇s0)
+        RHS_d_s_omb = divergenceTerm(rho_oil*λ_o_face.*dpc_face.*∇s0)
         # M_a_s_omb = convectionUpwindTerm(-rho_oil*((dλ_o_face.*∇p0)
         #                                 +(dλ_o_face.*dpc_face+λ_o_face.*d2pc_face).*∇s0), uw)
-        M_d_s_omb = diffusionTerm(-rho_oil*λ_o_face.*dpc_face)
-
+        M_d_s_omb = 0.0 #diffusionTerm(-rho_oil*λ_o_face.*dpc_face)
+        
         # create the PDE system M [p;s;c]=RHS
         # x_val = [p_val.value[:]; sw_val.value[:]; c_val.value[:]]
         M = [M_bc_p+M_d_p_wmb   M_t_s_wmb+M_a_s_wmb;
