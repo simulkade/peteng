@@ -1,6 +1,6 @@
 using PyPlot, Polynomials, CoolProp, Roots
 using JFVM
-include("rel_perms_real.jl")
+include("../functions/rel_perms_real.jl")
 
 T0 = 70 + 273.15 # [K]
 p0 = 2000/14.7*1e5   # [Pa]
@@ -75,9 +75,9 @@ BCs.left.a[:]  = 0.0
 BCs.left.b[:]  = 1.0
 BCs.left.c[:]  = 1.0
 
-# BCs.right.a[:]  = 0.0
-# BCs.right.b[:]  = 1.0
-# BCs.right.c[:]  = sw_imb_end
+BCs.right.a[:]  = 0.0
+BCs.right.b[:]  = 1.0
+BCs.right.c[:]  = sw_imb_end
 boundary_switch = true
 
 # discretize
@@ -99,12 +99,12 @@ sw_val = createCellVariable(m, sw0, BCs)
 k = createCellVariable(m, perm_val)
 ϕ = createCellVariable(m, poros_val)
 
-n_pv    = 1.0 # number of injected pore volumes
+n_pv    = 0.3 # number of injected pore volumes
 t_final = n_pv*Lx/(u_inj/poros_val) # [s] final time
-dt0      = t_final/n_pv/Nx/20 # [s] time step
+dt0      = t_final/n_pv/Nx # [s] time step
 dt = dt0
 # outside the loop: initialization
-uw       = gradientTerm(p_val) # only for initialization of the water velocity vector
+ut       = -gradientTerm(p_val) # only for initialization of the water velocity vector
 k_face   = harmonicMean(k)     # permeability on the cell faces
 
 # this whole thing goes inside two loops (Newton and time)
@@ -112,7 +112,7 @@ tol_s = 1e-7
 max_change_s = 0.1 # 10 % relative change
 max_int_loop = 10
 t = dt
-while t<80*dt0 #t_final
+while t<t_final
     error_s = 2*tol_s
     loop_countor = 0
     while error_s>tol_s
@@ -126,7 +126,7 @@ while t<80*dt0 #t_final
         ∇p0      = gradientTerm(p_val)
         ∇s0      = gradientTerm(sw_val)
 
-        sw_face       = upwindMean(sw_val, uw)
+        sw_face       = upwindMean(sw_val, ut)
 
         dpc_face      = faceEval(dPC, sw_face)
         d2pc_face      = faceEval(d2PC, sw_face)
@@ -136,7 +136,9 @@ while t<80*dt0 #t_final
 
         λ_w_face      = k_face.*krw_face/mu_water
         λ_o_face      = k_face.*kro_face/mu_oil
-        uw            = -λ_w_face.*∇p0-λ_w_face.*(∇p0+dpc_face.*∇s0)
+        uw            = -λ_w_face.*∇p0 #-λ_w_face.*(∇p0+dpc_face.*∇s0)
+        uo            = -λ_w_face.*(∇p0+dpc_face.*∇s0)
+        ut = uw+uo
 
         dλ_w_face     = k_face.*faceEval(dKRW,sw_face)/mu_water
         dλ_o_face     = k_face.*faceEval(dKRO,sw_face)/mu_oil
@@ -150,16 +152,16 @@ while t<80*dt0 #t_final
         # water mass balance (wmb)
         M_t_s_wmb, RHS_t_s_wmb = transientTerm(sw_init, dt, rho_water*ϕ)
         M_d_p_wmb = diffusionTerm(-rho_water*λ_w_face)
-        M_a_s_wmb = convectionUpwindTerm(-rho_water*dλ_w_face.*∇p0, uw)
+        M_a_s_wmb = convectionUpwindTerm(-rho_water*dλ_w_face.*∇p0, ut)
 
         # oil mass balance (omb)
         M_t_s_omb, RHS_t_s_omb = transientTerm(sw_init, dt, -rho_oil*ϕ)
         M_d_p_omb = diffusionTerm(-rho_oil*λ_o_face)
-        M_a_s_omb = convectionUpwindTerm(-rho_oil*dλ_o_face.*(∇p0+dpc_face.*∇s0), uw)
-        RHS_d_s_omb = divergenceTerm(rho_oil*λ_o_face.*dpc_face.*∇s0)
+        M_a_s_omb = convectionUpwindTerm(-rho_oil*dλ_o_face.*(∇p0+dpc_face.*∇s0), ut)
+        RHS_d_s_omb = 0.0 # divergenceTerm(rho_oil*λ_o_face.*dpc_face.*∇s0)
         # M_a_s_omb = convectionUpwindTerm(-rho_oil*((dλ_o_face.*∇p0)
         #                                 +(dλ_o_face.*dpc_face+λ_o_face.*d2pc_face).*∇s0), uw)
-        M_d_s_omb = 0.0 # diffusionTerm(-rho_oil*λ_o_face.*dpc_face)
+        M_d_s_omb = diffusionTerm(-rho_oil*λ_o_face.*dpc_face)
 
         # create the PDE system M [p;s;c]=RHS
         # x_val = [p_val.value[:]; sw_val.value[:]; c_val.value[:]]
@@ -173,10 +175,32 @@ while t<80*dt0 #t_final
 
         p_new = x_sol[1:Nx+2]
         s_new = x_sol[Nx+3:2*Nx+4]
-        error_s = sumabs(s_new[2:end-1]-sw_val.value[2:end-1])
+        error_s = sum(abs, s_new[2:end-1]-sw_val.value[2:end-1])
         # println(error_s)
         p_val.value[:] = p_new[:]
-        sw_val.value[:] = s_new[:]
+        dsw_apple = 0.2
+        eps_apple = sqrt(eps()) # 1e-5
+        for i in eachindex(s_new)
+            if s_new[i]>=(1-sor)
+                if sw_val.value[i]<(1-sor-eps_apple)
+                    sw_val.value[i] = 1-sor-eps_apple
+                else
+                    sw_val.value[i] = 1-sor
+                end
+            elseif s_new[i]<=swc
+                if sw_val.value[i]> swc+eps_apple
+                    sw_val.value[i] = swc+eps_apple
+                else
+                    sw_val.value[i] = swc
+                end
+            elseif abs(s_new[i]-sw_val.value[i])>dsw_apple
+                sw_val.value[i] += dsw_apple*sign(s_new[i]-sw_val.value[i])
+            else
+                sw_val.value[i] = s_new[i]
+            end
+        end
+        sw_val = createCellVariable(m, internalCells(sw_val), BCs)
+        # sw_val.value[:] = s_new[:]
     end
     if loop_countor<max_int_loop
       p_init = copyCell(p_val)
