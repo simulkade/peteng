@@ -1,7 +1,7 @@
 module FractionalFlow
 
-using Roots, Dierckx
-import CoreyFunctions
+using Roots, Dierckx, Plots
+include("CoreyFunctions.jl")
 CF = CoreyFunctions
 
 # types:
@@ -38,9 +38,41 @@ end
 
 """
 """
-function oil_water_rel_perm(;krw0=0.4, kro0=0.9, 
+function oil_water_rel_perms(;krw0=0.4, kro0=0.9, 
     swc=0.15, sor=0.2, nw=2.0, no = 2.0)
     return CoreyRelativePermeability(krw0, kro0, swc, sor, nw, no)
+end
+
+function oil_water_fluids(;mu_water=1e-3, mu_oil=2e-3)
+    return Fluids(mu_oil, mu_water)
+end
+
+function core_flooding(;u_inj=1.15e-5, pv_inject=5.0, p_back=1e5, sw_init=0.2, sw_inj=1.0, rel_perms=[])
+    swc = sw_init
+    if !isempty(rel_perms)
+        if rel_perms.swc>sw_init
+            swc = rel_perms.swc
+        end
+    end
+    return CoreFlooding(u_inj, pv_inject, p_back, swc, sw_inj)
+end
+
+function core_properties(;L=0.15, D=0.03, φ=0.3, k=1e-12)
+    return CoreProperties(L, D, φ, k)
+end
+
+function test_water_flood()
+    fluids = oil_water_fluids()
+    rel_perms = oil_water_rel_perms()
+    core_flood = core_flooding()
+    core_props = core_properties()
+    pv, R = water_flood(core_props, fluids, rel_perms, core_flood)
+    fw, dfw = fractional_flow_function(rel_perms, fluids)
+    sw_tmp = linspace(0,1,100)
+    # plot(sw_tmp, fw.(sw_tmp), xlabel = "Sw", ylabel="fw", label="")
+    # plot!(sw_tmp, dfw.(sw_tmp))
+    plot(pv, R, xlabel="PV injected", ylabel="Recovery factor", 
+        label="", title="Water flooding")
 end
 
 function rel_perm_functions(rel_perm::CoreyRelativePermeability)
@@ -59,8 +91,8 @@ function rel_perm_functions(rel_perm::CoreyRelativePermeability)
     return krw, kro, dkrwdsw, dkrodsw
 end
 
-function fractional_flow_functions(rel_perm, fluids)
-    krw, kro, dkrwdsw, dkrodsw = rel_perm_functions(rel_perm)
+function fractional_flow_function(rel_perms, fluids)
+    krw, kro, dkrwdsw, dkrodsw = rel_perm_functions(rel_perms)
     muw = fluids.water_viscosity
     muo = fluids.oil_viscosity
 
@@ -70,6 +102,74 @@ function fractional_flow_functions(rel_perm, fluids)
     (kro(sw)/muo+krw(sw)/muw)^2)
     
     return fw, dfw
+end
+
+function tangent_line_saturation(rel_perms, fluids, sw_fw_point)
+    swc = rel_perms.swc
+    sor = rel_perms.sor
+    sw0 = sw_fw_point[1]
+    fw0 = sw_fw_point[2]
+    fw, dfw = fractional_flow_function(rel_perms, fluids)
+
+    f_shock = sw -> (dfw(sw)-(fw(sw)-fw0)/(sw-sw0))
+    sw_tmp = collect(linspace(swc+eps(), 1-sor-eps(), 1000))
+    # ind_min = indmin(abs.(f_shock.(sw_tmp)))
+    ind_max = indmax(dfw.(sw_tmp))
+    sw_max = sw_tmp[ind_max]
+    ind_min = indmin(abs.(f_shock.(sw_tmp[ind_max:end])))
+    sw_shock = sw_tmp[ind_min]
+    try
+        if f_shock(sw_max)*f_shock(1-sor-eps())>0
+            sw_shock = fzero(f_shock, sw_shock) #  ftol = 1e-10, xtol = 1e-7)
+        else
+            sw_shock = fzero(f_shock, [sw_max,1-sor-eps()])
+        end
+    catch()
+        info("shock front saturation is estimated: $sw_shock, error is $(f_shock(sw_shock))")
+    end
+end
+
+function cross_point_saturation(fw, point1, point2)
+
+end
+
+function water_flood(core_props, fluids, rel_perms, core_flood)
+    fw, dfw = fractional_flow_function(rel_perms, fluids)
+    sw_init = core_flood.initial_water_saturation
+    sw_shock = tangent_line_saturation(rel_perms, fluids, (sw_init, fw(sw_init)))
+    println("sw_shock = $sw_shock")
+    t_D_BT = 1/dfw(sw_shock) # breakthrough (BT) time [#PV]
+    println("breakthrough time = $t_D_BT")
+    # construct the recovery factor curve versus the # of PV
+    R = zeros(1)
+    pv_R = zeros(1)
+    # at breakthrough
+    push!(R, (1-fw(sw_init))*t_D_BT/(1-sw_init)) # recovery at BT
+    push!(pv_R, t_D_BT) # BT time
+    # after breakthrough
+    sor = rel_perms.sor
+    sw_tmp = linspace(sw_shock, 1-sor, 100)
+    t_D_tmp = 1./dfw.(sw_tmp)
+    
+    s_av_tmp = sw_tmp-(fw.(sw_tmp)-1).*t_D_tmp
+    R_tmp = (s_av_tmp-sw_init)/(1-sw_init)
+    append!(R, R_tmp)
+    append!(pv_R, t_D_tmp)
+    return pv_R, R # for the time being to test the code
+
+
+end
+
+function low_sal_water_flood()
+
+end
+
+function single_ion_adsorption_water_flood()
+
+end
+
+function water_soluble_solvent_flood()
+
 end
 
 end # module
