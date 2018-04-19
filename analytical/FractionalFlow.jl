@@ -3,6 +3,7 @@ module FractionalFlow
 using Roots, Dierckx, PyPlot, JFVM
 include("CoreyFunctions.jl")
 include("water_flood_fvm.jl")
+include("fractional_flow_cases.jl")
 CF = CoreyFunctions
 
 # types:
@@ -62,133 +63,7 @@ function core_properties(;L=0.15, D=0.03, φ=0.3, k=1e-12)
     return CoreProperties(L, D, φ, k)
 end
 
-function test_water_flood()
-    fluids = oil_water_fluids()
-    rel_perms = oil_water_rel_perms()
-    core_flood = core_flooding()
-    core_props = core_properties()
-    pv, R, xt, sw = water_flood(core_props, fluids, rel_perms, core_flood)
-    fw, dfw = fractional_flow_function(rel_perms, fluids)
-    sw_tmp = linspace(0,1,100)
-    # plot(sw_tmp, fw.(sw_tmp), xlabel = "Sw", ylabel="fw", label="")
-    # plot!(sw_tmp, dfw.(sw_tmp))
-    figure(1)
-    plot(pv, R) 
-    xlabel("PV injected")
-    ylabel("Recovery factor") 
-    title("Water flooding")
-    figure(2)
-    plot(xt, sw)
-    xlabel("x/t [-]")
-    ylabel("Water saturation [-]")
-end
 
-function test_lowsal_water_flood()
-    fluids_hs = oil_water_fluids(mu_water=1e-3, mu_oil=2e-3)
-    fluids_ls = oil_water_fluids(mu_water=1e-3, mu_oil=2e-3)
-    rel_perms_hs = oil_water_rel_perms(krw0=0.4, kro0=0.9, 
-        swc=0.15, sor=0.2, nw=2.0, no = 2.0)
-    rel_perms_ls = oil_water_rel_perms(krw0=0.3, kro0=0.95, 
-        swc=0.15, sor=0.15, nw=2.0, no = 2.0)
-    core_flood = core_flooding(u_inj=1.15e-5, pv_inject=5.0, p_back=1e5, sw_init=0.2, sw_inj=1.0, rel_perms=rel_perms_hs)
-    core_props = core_properties()
-    pv, R, xt, sw = low_sal_water_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs, 
-        rel_perms_ls, core_flood)
-    # fw, dfw = fractional_flow_function(rel_perms, fluids)
-    # sw_tmp = linspace(0,1,100)
-    # plot(sw_tmp, fw.(sw_tmp), xlabel = "Sw", ylabel="fw", label="")
-    # plot!(sw_tmp, dfw.(sw_tmp))
-    figure(1)
-    plot(pv, R) 
-    xlabel("PV injected")
-    ylabel("Recovery factor") 
-    title("Water flooding")
-    figure(2)
-    plot(xt, sw)
-    xlabel("x/t [-]")
-    ylabel("Water saturation [-]")
-end
-
-function test_lowsal_numeric()
-    fluids_hs = oil_water_fluids(mu_water=1e-3, mu_oil=2e-3)
-    fluids_ls = oil_water_fluids(mu_water=1e-3, mu_oil=2e-3)
-    rel_perms_hs = oil_water_rel_perms(krw0=0.4, kro0=0.9, 
-        swc=0.15, sor=0.2, nw=2.0, no = 2.0)
-    rel_perms_ls = oil_water_rel_perms(krw0=0.3, kro0=0.95, 
-        swc=0.15, sor=0.15, nw=2.0, no = 2.0)
-    core_flood = core_flooding(u_inj=1.15e-5, pv_inject=5.0, p_back=1e5, sw_init=0.8, sw_inj=1.0, rel_perms=rel_perms_hs)
-    core_props = core_properties()
-    pv, R, xt, sw = low_sal_water_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs, 
-        rel_perms_ls, core_flood)
-    t_sec, pv_num, rec_fact, xt_num, sw_num, c_old, c_out_sal = forced_imb_implicit(core_props, fluids_ls, fluids_hs, rel_perms_hs, 
-        rel_perms_ls, core_flood)
-    # fw, dfw = fractional_flow_function(rel_perms, fluids)
-    # sw_tmp = linspace(0,1,100)
-    # plot(sw_tmp, fw.(sw_tmp), xlabel = "Sw", ylabel="fw", label="")
-    # plot!(sw_tmp, dfw.(sw_tmp))
-    figure(1)
-    plot(pv_num, rec_fact, "--") 
-    xlabel("PV injected")
-    ylabel("Recovery factor") 
-    title("Water flooding")
-    figure(2)
-    plot(xt_num, sw_num)
-    JFVM.visualizeCells(c_old)
-    xlabel("x/t [-]")
-    ylabel("Water saturation [-]")
-end
-
-function test_adsorption_lowsal_water_flood()
-    fluids_hs = oil_water_fluids(mu_water=1e-3, mu_oil=2e-3)
-    fluids_ls = oil_water_fluids(mu_water=0.8e-3, mu_oil=2e-3)
-    rel_perms_hs = oil_water_rel_perms(krw0=0.4, kro0=0.9, 
-        swc=0.15, sor=0.2, nw=2.0, no = 2.0)
-    rel_perms_ls = oil_water_rel_perms(krw0=0.3, kro0=0.95, 
-        swc=0.15, sor=0.15, nw=2.0, no = 2.0)
-    core_flood = core_flooding()
-    core_props = core_properties()
-    pv, R, xt, sw = single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs, 
-        rel_perms_ls, core_flood, 0.2)
-    # fw, dfw = fractional_flow_function(rel_perms, fluids)
-    # sw_tmp = linspace(0,1,100)
-    # plot(sw_tmp, fw.(sw_tmp), xlabel = "Sw", ylabel="fw", label="")
-    # plot!(sw_tmp, dfw.(sw_tmp))
-    figure(1)
-    plot(pv, R) 
-    xlabel("PV injected")
-    ylabel("Recovery factor") 
-    title("Water flooding")
-    figure(2)
-    plot(xt, sw)
-    xlabel("x/t [m/s]")
-    ylabel("Water saturation [-]")
-end
-
-function test_adsorption_lowsal_tertiary_water_flood()
-    fluids_hs = oil_water_fluids(mu_water=1e-3, mu_oil=2e-3)
-    fluids_ls = oil_water_fluids(mu_water=0.8e-3, mu_oil=2e-3)
-    rel_perms_hs = oil_water_rel_perms(krw0=0.4, kro0=0.9, 
-        swc=0.15, sor=0.2, nw=2.0, no = 2.0)
-    rel_perms_ls = oil_water_rel_perms(krw0=0.3, kro0=0.95, 
-        swc=0.15, sor=0.15, nw=2.0, no = 2.0)
-    core_flood = core_flooding()
-    core_props = core_properties()
-    pv, R, xt, sw = single_ion_adsorption_tertiary_water_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs, 
-        rel_perms_ls, core_flood, 0.2)
-    # fw, dfw = fractional_flow_function(rel_perms, fluids)
-    # sw_tmp = linspace(0,1,100)
-    # plot(sw_tmp, fw.(sw_tmp), xlabel = "Sw", ylabel="fw", label="")
-    # plot!(sw_tmp, dfw.(sw_tmp))
-    figure(1)
-    plot(pv, R) 
-    xlabel("PV injected")
-    ylabel("Recovery factor") 
-    title("Water flooding")
-    figure(2)
-    plot(xt, sw)
-    xlabel("x/t [m/s]")
-    ylabel("Water saturation [-]")
-end
 
 function rel_perm_functions(rel_perm::CoreyRelativePermeability)
     kro0 = rel_perm.kro0
@@ -380,6 +255,15 @@ end
 
 function single_ion_adsorption_tertiary_water_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs, 
     rel_perms_ls, core_flood, eq_const)
+    # ====================================================================
+    # This function is not done yet. The trick is to draw a tangent from 
+    # the high sal 1-sor_hs to the low sal curve to find the shock front 
+    # saturation. The low sal shock speed is calculated at this saturation
+    # by fw/(sw+eq_const)
+    # The implementation needs some if statements to make sure that the 
+    # shock front saturation calculated by the tangent line from -eq_const
+    # to the low sal fw is indeed lower than 1-sor_hs
+    # ====================================================================
     # construct the fractional flow curves
     fw_ls, dfw_ls = fractional_flow_function(rel_perms_ls, fluids_ls)
     fw_hs, dfw_hs = fractional_flow_function(rel_perms_hs, fluids_hs)
@@ -446,8 +330,64 @@ function single_ion_adsorption_tertiary_water_flood(core_props, fluids_ls, fluid
     return pv_R, R, xt_prf, sw_prf # for the time being to test the code
 end
 
+"""
+the eq_const is defined as the ratio of the volume fraction of the solvent in oil to 
+its volume fraction in water. For instance, For DME, the molar fraction is around 2.0
+One criteria is that eq_const should probably be higher than 1.
+"""
+function water_soluble_solvent_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs, 
+    rel_perms_ls, core_flood, eq_const)
+    # construct the fractional flow curves
+    fw_ls, dfw_ls = fractional_flow_function(rel_perms_ls, fluids_ls)
+    fw_hs, dfw_hs = fractional_flow_function(rel_perms_hs, fluids_hs)
+    # low sal shock (tangent line from (0,0))
+    point1 = (-eq_const/(1-eq_const), -eq_const/(1-eq_const))
+    sw_shock_ls = tangent_line_saturation(rel_perms_ls, fluids_ls, point1)
+    println("low sal sw_shock = $sw_shock_ls")
+    t_D_BT_ls = 1/dfw_ls(sw_shock_ls) # breakthrough (BT) time [#PV]
+    println("low sal breakthrough time = $t_D_BT_ls")
+    # High sal shock (cross point between the ls tangent and the hs fw)
+    sw_shock_hs = cross_point_saturation(fw_hs, rel_perms_hs, point1, (sw_shock_ls, fw_ls(sw_shock_ls)))
+    println("high sal sw_shock = $sw_shock_hs")
+    sw_init = core_flood.initial_water_saturation    
+    t_D_BT_hs = (sw_shock_hs-sw_init)/(fw_hs(sw_shock_hs)-fw_hs(sw_init)) # breakthrough (BT) time [#PV]
+    println("high sal breakthrough time = $t_D_BT_hs")
+    
+    # construct the recovery factor curve versus the # of PV
+    R = zeros(1)
+    pv_R = zeros(1)
+    # at breakthrough of the hs brine
+    push!(R, (1-fw_hs(sw_init))*t_D_BT_hs/(1-sw_init)) # recovery at BT
+    push!(pv_R, t_D_BT_hs) # BT time
+    # at breakthrough of the ls brine
+    push!(R, R[end]+(1-fw_hs(sw_shock_hs))*(t_D_BT_ls-t_D_BT_hs)/(1-sw_init)) # recovery at BT
+    push!(pv_R, t_D_BT_ls) # BT time
 
-function water_soluble_solvent_flood()
+    # after breakthrough
+    pv_inj = max(core_flood.injected_pore_volume, 2.0) # at least inject 2 pv
+    f_sw = sw -> (pv_inj-1/dfw_ls(sw)) # find the outlet saturation at the end of injection
+    sw_max = fzero(f_sw, sw_shock_ls)
+    sw_tmp = linspace(sw_shock_ls, sw_max, 100)
+    t_D_tmp = 1./dfw_ls.(sw_tmp)
+    
+    s_av_tmp = sw_tmp-(fw_ls.(sw_tmp)-1).*t_D_tmp
+    R_tmp = (s_av_tmp-sw_init)/(1-sw_init)
+    append!(R, R_tmp)
+    append!(pv_R, t_D_tmp)
+
+    # saturation profile
+    sor = rel_perms_ls.sor
+    sw_inj = core_flood.injected_water_saturation
+    phi = core_props.porosity
+    ut = core_flood.injection_velocity
+    s1 = collect(linspace(min(sw_inj, 1-sor-eps()), sw_shock_ls-eps(), 100))
+    xt_s1 = dfw_ls.(s1)
+    xt_shock_ls = 1/t_D_BT_ls
+    xt_shock_hs = 1/t_D_BT_hs
+    xt_prf=[xt_s1; xt_shock_ls; xt_shock_ls+eps(); xt_shock_hs; xt_shock_hs+eps(); 1/0.3]
+    sw_prf=[s1; sw_shock_ls; sw_shock_hs; sw_shock_hs; sw_init; sw_init]
+
+    return pv_R, R, xt_prf, sw_prf # for the time being to test the code
 
 end
 
