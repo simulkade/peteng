@@ -270,19 +270,19 @@ function single_ion_adsorption_tertiary_water_flood(core_props, fluids_ls, fluid
     # low sal shock (tangent line from (0,0))
     sw_shock_ls = tangent_line_saturation(rel_perms_ls, fluids_ls, (-eq_const, 0.0))
     println("low sal sw_shock = $sw_shock_ls")
+    t_D_BT_ls = 1/dfw_ls(sw_shock_ls) # breakthrough (BT) time [#PV]
+    println("low sal breakthrough time = $t_D_BT_ls")
     # This is speculation: sometimes the calculated low sal shock sw is lower than 1-sor_ls
     # which is impossible. Therefore, I correct it here, and also correct the low sal
     # breakthrough time. Therefore, the following correction is applied:
     sor_hs = rel_perms_hs.sor
     if (sw_shock_ls<1-sor_hs)
-        info("Low sal shock correction: from $sw_shock_ls to $(1-sor_hs)")
-        sw_shock_ls = 1-sor_hs
-        t_D_BT_ls_w = fw_ls(sw_shock_ls)/(sw_shock_ls+eq_const)
+        info("the calculated shock front $sw_shock_ls is less than $(1-sor_hs). Correection is needed")
+        sw_shock_ls = tangent_line_saturation(rel_perms_ls, fluids_ls, (1-sor_hs, 0.0))
+        println("Corrected: low sal sw_shock = $sw_shock_ls")
+        t_D_BT_ls = dfw_ls(sw_shock_ls)
         info("low sal breakthrough time corrected to $t_D_BT_ls_w")
     end
-    t_D_BT_ls = 1/dfw_ls(sw_shock_ls) # breakthrough (BT) time [#PV]
-    println("low sal breakthrough time = $t_D_BT_ls")
-    
     
     # High sal shock (cross point between the ls tangent and the hs fw)
     sw_shock_hs = cross_point_saturation(fw_hs, rel_perms_hs, (-eq_const, 0.0), (sw_shock_ls, fw_ls(sw_shock_ls)))
