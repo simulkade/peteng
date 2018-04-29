@@ -36,6 +36,17 @@ struct Fluids
     water_viscosity::Real
 end
 
+"""
+A structure that stores the fractional flow curves and the final solution
+"""
+struct FracFlowResults
+    fractional_flow_functions::Array{Function, 1}
+    shock_lines::Array{Real, 2}
+    recovery_pv::Array{Real, 2}
+    recovery_time::Array{Real, 2}
+    saturation_profile_xt::Array{Real, 2}
+end
+
 # functions
 
 """
