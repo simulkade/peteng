@@ -16,6 +16,13 @@ struct CoreyRelativePermeability
     no::Real
 end
 
+"""
+The properties of the core are stored in this structure
+    length::Real
+    diameter::Real
+    porosity::Real
+    permeability::Real
+"""
 struct CoreProperties
     length::Real
     diameter::Real
@@ -23,6 +30,14 @@ struct CoreProperties
     permeability::Real
 end
 
+"""
+A structure for storing the core flooding experimental conditions
+    injection_velocity::Real        # m/s
+    injected_pore_volume::Real
+    back_pressure::Real             # Pa
+    initial_water_saturation::Real
+    injected_water_saturation::Real
+"""
 struct CoreFlooding
     injection_velocity::Real # m/s
     injected_pore_volume::Real
@@ -31,17 +46,33 @@ struct CoreFlooding
     injected_water_saturation::Real
 end
 
+"""
+a structure that stores the viscosity of the fluids
+"""
 struct Fluids
     oil_viscosity::Real
     water_viscosity::Real
 end
 
 """
+A line to be used for storing the shock line results
+"""
+struct Line
+    start_point::Array{Real,1}
+    end_point::Array{Real,1}
+end
+
+"""
 A structure that stores the fractional flow curves and the final solution
+    fractional_flow_functions::Array{Function, 1}
+    shock_line::Array{Real, 2}
+    recovery_pv::Array{Real, 2}
+    recovery_time::Array{Real, 2}
+    saturation_profile_xt::Array{Real, 2}
 """
 struct FracFlowResults
     fractional_flow_functions::Array{Function, 1}
-    shock_lines::Array{Real, 2}
+    shock_lines::Array{Line, 1}
     recovery_pv::Array{Real, 2}
     recovery_time::Array{Real, 2}
     saturation_profile_xt::Array{Real, 2}
@@ -50,6 +81,61 @@ end
 # functions
 
 """
+visualize(rel_perm::CoreyRelativePermeability)
+This function visualizes the relative permeability curve that is defined
+by a CoreyRelativePermeability structure
+"""
+function visualize(rel_perms::CoreyRelativePermeability)
+    # convert the rel_perm structure to the rel_perm functions
+    krw, kro, dkrwdsw, dkrodsw = rel_perm_functions(rel_perms)
+    sw = linspace(0,1, 100)
+    plot(sw, krw.(sw), label="krw")
+    plot(sw, kro.(sw), label="kro")
+    xlabel("Sw")
+    ylabel("Relative permeability")
+    legend()
+end
+
+function visualize(rel_perms::CoreyRelativePermeability, fluids::Fluids)
+    # convert the rel_perm structure to the rel_perm functions
+    fw, dfw = fractional_flow_function(rel_perms, fluids)
+    sw = linspace(0,1, 100)
+    subplot(1,2,1)
+    plot(sw, fw.(sw), label="fw")
+    xlabel("Sw [-]")
+    ylabel("Fractional flow [-]")
+    legend()
+    subplot(1,2,2)
+    plot(sw, dfw.(sw), label="dfw/dSw")
+    xlabel("Sw [-]")
+    ylabel("Fractional flow derivative [-]")
+    legend()
+end
+
+"""
+visualize the fractional flow results
+"""
+function visualize(fw_res::FracFlowResults)
+    # plot the fractional flow functions and the solution procedure
+    fw = fw_res.fractional_flow_functions
+    sw = linspace(0, 1, 100)
+    figure()
+    for f in fw
+        plot(sw, f.(sw))
+    end
+    shock_lines = fw_res.shock_lines
+    for sl in shock_lines
+        plot(sl.start_point[1], sl.start_point[2], "ro")
+        plot(sl.end_point[1], sl.end_point[2], "ro")
+        plot([sl.start_point[1], sl.end_point[1]], [sl.start_point[2], sl.end_point[2]], "r")
+    end
+end
+
+"""
+corey_rel_perm = oil_water_rel_perms(krw0=0.4, kro0=0.9, 
+    swc=0.15, sor=0.2, nw=2.0, no = 2.0)
+This functions defines a CoreyRelativePermeability structure
+with a set of predefined values
 """
 function oil_water_rel_perms(;krw0=0.4, kro0=0.9, 
     swc=0.15, sor=0.2, nw=2.0, no = 2.0)
@@ -73,8 +159,6 @@ end
 function core_properties(;L=0.15, D=0.03, φ=0.3, k=1e-12)
     return CoreProperties(L, D, φ, k)
 end
-
-
 
 function rel_perm_functions(rel_perm::CoreyRelativePermeability)
     kro0 = rel_perm.kro0
@@ -186,13 +270,17 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     sw_inj = core_flood.injected_water_saturation
     phi = core_props.porosity
     ut = core_flood.injection_velocity
+    L = core_props.length
+    pv_to_t = phi*L/ut
     s1 = collect(linspace(min(sw_inj, 1-sor-eps()), sw_shock-eps(), 100))
     xt_s1 = dfw.(s1)
     xt_shock = dfw(sw_shock)
     xt_prf=[xt_s1; xt_shock; xt_shock+eps(); 2*xt_shock]
     sw_prf=[s1; sw_shock; sw_init; sw_init]
 
-    return pv_R, R, xt_prf, sw_prf # for the time being to test the code
+    return FracFlowResults([fw], [Line([sw_init, fw(sw_init)], [sw_shock, fw(sw_shock)])], 
+                            [pv_R R], [pv_R*pv_to_t R], [xt_prf sw_prf])
+    # return pv_R, R, xt_prf, sw_prf # for the time being to test the code
 
 end
 
