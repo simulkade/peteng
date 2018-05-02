@@ -76,6 +76,7 @@ struct FracFlowResults
     recovery_pv::Array{Real, 2}
     recovery_time::Array{Real, 2}
     saturation_profile_xt::Array{Real, 2}
+    tracer_profile_xt::Array{Real, 2}
 end
 
 # functions
@@ -129,6 +130,25 @@ function visualize(fw_res::FracFlowResults)
         plot(sl.end_point[1], sl.end_point[2], "ro")
         plot([sl.start_point[1], sl.end_point[1]], [sl.start_point[2], sl.end_point[2]], "r")
     end
+    xlabel("Water saturation [-]")
+    ylabel("water fractional flow [-]")
+    # plot the recovery factors (pv)
+    figure()
+    plot(fw_res.recovery_pv[:,1], fw_res.recovery_pv[:,2])
+    xlabel("Pore volume [-]")
+    ylabel("Recovery factor")
+    # plot the recovery factors (time)
+    figure()
+    plot(fw_res.recovery_time[:,1], fw_res.recovery_time[:,2])
+    xlabel("time [s]")
+    ylabel("Recovery factor")
+    # plot the saturation profile
+    figure()
+    plot(fw_res.saturation_profile_xt[:,1], fw_res.saturation_profile_xt[:,2], label = "Sw")
+    plot(fw_res.tracer_profile_xt[:,1], fw_res.tracer_profile_xt[:,2], label = "tracer")
+    xlabel("xD/tD [-]")
+    ylabel("Water saturation")
+    legend()
 end
 
 """
@@ -246,7 +266,11 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     println("sw_shock = $sw_shock")
     t_D_BT = 1/dfw(sw_shock) # breakthrough (BT) time [#PV]
     println("breakthrough time = $t_D_BT")
-    
+
+    # tracer
+    sw_tracer = tangent_line_saturation(rel_perms, fluids, (0.0, 0.0))
+    t_D_tracer = 1/dfw(sw_tracer)
+    xt_tracer_shock = dfw(sw_tracer)
     # construct the recovery factor curve versus the # of PV
     R = zeros(1)
     pv_R = zeros(1)
@@ -278,8 +302,11 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     xt_prf=[xt_s1; xt_shock; xt_shock+eps(); 2*xt_shock]
     sw_prf=[s1; sw_shock; sw_init; sw_init]
 
+    xt_tracer = [0.0, xt_tracer_shock, xt_tracer_shock+eps(), xt_prf[end]]
+    c_tracer = [1.0, 1.0, 0.0, 0.0]
+
     return FracFlowResults([fw], [Line([sw_init, fw(sw_init)], [sw_shock, fw(sw_shock)])], 
-                            [pv_R R], [pv_R*pv_to_t R], [xt_prf sw_prf])
+                            [pv_R R], [pv_R*pv_to_t R], [xt_prf sw_prf], [xt_tracer c_tracer])
     # return pv_R, R, xt_prf, sw_prf # for the time being to test the code
 
 end
@@ -342,6 +369,7 @@ function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel
     sw_inj = core_flood.injected_water_saturation
     phi = core_props.porosity
     ut = core_flood.injection_velocity
+    L = core_props.length
     s1 = collect(linspace(min(sw_inj, 1-sor-eps()), sw_shock_ls-eps(), 100))
     xt_s1 = dfw_ls.(s1)
     xt_shock_ls = 1/t_D_BT_ls
