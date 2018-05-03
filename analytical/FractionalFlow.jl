@@ -1,8 +1,9 @@
 module FractionalFlow
 
-using Roots, Dierckx, PyPlot, JFVM
+using Roots, Dierckx, PyPlot, JFVM, ProgressMeter
 include("CoreyFunctions.jl")
 include("water_flood_fvm.jl")
+include("water_flood_fvm_upwind.jl")
 include("fractional_flow_cases.jl")
 CF = CoreyFunctions
 
@@ -101,12 +102,12 @@ function visualize(rel_perms::CoreyRelativePermeability, fluids::Fluids)
     # convert the rel_perm structure to the rel_perm functions
     fw, dfw = fractional_flow_function(rel_perms, fluids)
     sw = linspace(0,1, 100)
-    subplot(1,2,1)
+    subplot(2,1,1)
     plot(sw, fw.(sw), label="fw")
     xlabel("Sw [-]")
     ylabel("Fractional flow [-]")
     legend()
-    subplot(1,2,2)
+    subplot(2,1,2)
     plot(sw, dfw.(sw), label="dfw/dSw")
     xlabel("Sw [-]")
     ylabel("Fractional flow derivative [-]")
@@ -116,15 +117,15 @@ end
 """
 visualize the fractional flow results
 """
-function visualize(fw_res::FracFlowResults)
+function visualize(wf_res::FracFlowResults)
     # plot the fractional flow functions and the solution procedure
-    fw = fw_res.fractional_flow_functions
+    fw = wf_res.fractional_flow_functions
     sw = linspace(0, 1, 100)
     figure()
     for f in fw
         plot(sw, f.(sw))
     end
-    shock_lines = fw_res.shock_lines
+    shock_lines = wf_res.shock_lines
     for sl in shock_lines
         plot(sl.start_point[1], sl.start_point[2], "ro")
         plot(sl.end_point[1], sl.end_point[2], "ro")
@@ -134,18 +135,18 @@ function visualize(fw_res::FracFlowResults)
     ylabel("water fractional flow [-]")
     # plot the recovery factors (pv)
     figure()
-    plot(fw_res.recovery_pv[:,1], fw_res.recovery_pv[:,2])
+    plot(wf_res.recovery_pv[:,1], wf_res.recovery_pv[:,2])
     xlabel("Pore volume [-]")
     ylabel("Recovery factor")
     # plot the recovery factors (time)
     figure()
-    plot(fw_res.recovery_time[:,1], fw_res.recovery_time[:,2])
+    plot(wf_res.recovery_time[:,1], wf_res.recovery_time[:,2])
     xlabel("time [s]")
     ylabel("Recovery factor")
     # plot the saturation profile
     figure()
-    plot(fw_res.saturation_profile_xt[:,1], fw_res.saturation_profile_xt[:,2], label = "Sw")
-    plot(fw_res.tracer_profile_xt[:,1], fw_res.tracer_profile_xt[:,2], label = "tracer")
+    plot(wf_res.saturation_profile_xt[:,1], wf_res.saturation_profile_xt[:,2], label = "Sw")
+    plot(wf_res.tracer_profile_xt[:,1], wf_res.tracer_profile_xt[:,2], label = "tracer")
     xlabel("xD/tD [-]")
     ylabel("Water saturation")
     legend()
@@ -320,9 +321,9 @@ reservoir brine, i.e., low salinity is the secondary flooding.
 """
 function low_sal_water_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs, 
     rel_perms_ls, core_flood)
-    pv_R, R, xt_prf, sw_prf= single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, 
+    ls_res= single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, 
     rel_perms_hs, rel_perms_ls, core_flood, 0.0)
-    return pv_R, R, xt_prf, sw_prf # for the time being to test the code
+    return ls_res # for the time being to test the code
 end
 
 function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs, 
@@ -342,6 +343,11 @@ function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel
     t_D_BT_hs = (sw_shock_hs-sw_init)/(fw_hs(sw_shock_hs)-fw_hs(sw_init)) # breakthrough (BT) time [#PV]
     println("high sal breakthrough time = $t_D_BT_hs")
     
+    # tracer
+    sw_tracer = tangent_line_saturation(rel_perms_ls, fluids_ls, (0.0, 0.0))
+    t_D_tracer = 1/dfw_ls(sw_tracer)
+    xt_tracer_shock = dfw_ls(sw_tracer)
+
     # construct the recovery factor curve versus the # of PV
     R = zeros(1)
     pv_R = zeros(1)
@@ -355,7 +361,8 @@ function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel
     # after breakthrough
     pv_inj = max(core_flood.injected_pore_volume, 2.0) # at least inject 2 pv
     f_sw = sw -> (pv_inj-1/dfw_ls(sw)) # find the outlet saturation at the end of injection
-    sw_max = fzero(f_sw, sw_shock_ls)
+    sw_max = fzero(f_sw, [sw_shock_ls, 1-rel_perms_ls.sor])
+    # println(sw_max)
     sw_tmp = linspace(sw_shock_ls, sw_max, 100)
     t_D_tmp = 1./dfw_ls.(sw_tmp)
     
@@ -370,14 +377,19 @@ function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel
     phi = core_props.porosity
     ut = core_flood.injection_velocity
     L = core_props.length
+    pv_to_t = phi*L/ut
     s1 = collect(linspace(min(sw_inj, 1-sor-eps()), sw_shock_ls-eps(), 100))
     xt_s1 = dfw_ls.(s1)
     xt_shock_ls = 1/t_D_BT_ls
     xt_shock_hs = 1/t_D_BT_hs
     xt_prf=[xt_s1; xt_shock_ls; xt_shock_ls+eps(); xt_shock_hs; xt_shock_hs+eps(); 1/0.3]
     sw_prf=[s1; sw_shock_ls; sw_shock_hs; sw_shock_hs; sw_init; sw_init]
-
-    return pv_R, R, xt_prf, sw_prf # for the time being to test the code
+    xt_tracer = [0.0, xt_tracer_shock, xt_tracer_shock+eps(), xt_prf[end]]
+    c_tracer = [1.0, 1.0, 0.0, 0.0]
+    # return pv_R, R, xt_prf, sw_prf # for the time being to test the code
+    return FracFlowResults([fw_hs, fw_ls], [Line([-eq_const, 0.0], [sw_shock_ls, fw_ls(sw_shock_ls)]),
+                            Line([sw_init, fw_hs(sw_init)], [sw_shock_hs, fw_hs(sw_shock_hs)])], 
+                            [pv_R R], [pv_R*pv_to_t R], [xt_prf sw_prf], [xt_tracer c_tracer])
 end
 
 function single_ion_adsorption_tertiary_water_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs, 
