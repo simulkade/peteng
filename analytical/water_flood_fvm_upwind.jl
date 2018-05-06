@@ -13,7 +13,7 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
   rel_perms_ls, core_flood)
   c_insitu = 1.0
   c_inj = 0
-  pv_inj = 0.4
+  pv_inj = 0.5
 
   C_high_sal=1.0
   C_low_sal=0.0
@@ -290,6 +290,7 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
   end
   pv = t_sec*u_in/(H*phi0)
   sw_face = linearMean(sw)
+  c_face  = linearMean(c_old)
   x = m.facecenters.x
-  t_sec, pv, rec_fact, x, sw_face.xvalue, c_old, c_out_sal
+  t_sec, pv, rec_fact, x, sw_face.xvalue, c_face.xvalue, c_out_sal
 end # imb_impes
