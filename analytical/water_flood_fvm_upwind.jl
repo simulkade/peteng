@@ -9,11 +9,11 @@ output:
   rec_fact: recovery factor
   sw: final saturation profile
 """
-function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_hs, 
+function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_hs,
   rel_perms_ls, core_flood)
   c_insitu = 1.0
   c_inj = 0
-  pv_inj = 0.5
+  pv_inj = 0.3
 
   C_high_sal=1.0
   C_low_sal=0.0
@@ -165,9 +165,9 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
   dc_alwd= 0.005
   labdaw=createFaceVariable(m,1.0) # initialize
   FL=fluxLimiter("SUPERBEE")
-  
+
   prog_1=Progress(100, 1)
-  
+
   while (t<t_end)
   # print("progress is $((t/t_end*100)) %", "\u1b[1G")
   update!(prog_1, floor(Int, t/t_end*100))
@@ -215,8 +215,8 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
     p_new.value[:] = full(x[1:(Nx+2)])
     sw_new.value[:] = full(x[(Nx+2)+1:end])
 
-    error_p = maximum(abs((internalCells(p_new)-internalCells(p))./internalCells(p_new)))
-    error_sw = maximum(abs(internalCells(sw_new)-internalCells(sw)))
+    error_p = maximum(abs.((internalCells(p_new)-internalCells(p))./internalCells(p_new)))
+    error_sw = maximum(abs.(internalCells(sw_new)-internalCells(sw)))
     # dt_new=dt*min(dp_alwd/error_p, dsw_alwd/error_sw)
     # print("sw_error = $error_sw \n")
     # assign new values of p and sw
@@ -261,9 +261,9 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
   nw= nw_ww*SF+nw_ow*(1-SF)
 
   # adaptive time step
-  dp = maximum(abs((internalCells(p_new)-internalCells(p_old))./internalCells(p_new)))
-  dsw = maximum(abs(internalCells(sw_new)-internalCells(sw_old)))
-  dc = maximum(abs(internalCells(c_new)-internalCells(c_old)))
+  dp = maximum(abs.((internalCells(p_new)-internalCells(p_old))./internalCells(p_new)))
+  dsw = maximum(abs.(internalCells(sw_new)-internalCells(sw_old)))
+  dc = maximum(abs.(internalCells(c_new)-internalCells(c_old)))
   # dt=min(dt*(dsw_alwd/dsw), dt*(dc_alwd/dc), 15*dt, t_end-t-eps())
 
   # update the variables

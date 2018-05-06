@@ -153,12 +153,12 @@ function visualize(wf_res::FracFlowResults)
 end
 
 """
-corey_rel_perm = oil_water_rel_perms(krw0=0.4, kro0=0.9, 
+corey_rel_perm = oil_water_rel_perms(krw0=0.4, kro0=0.9,
     swc=0.15, sor=0.2, nw=2.0, no = 2.0)
 This functions defines a CoreyRelativePermeability structure
 with a set of predefined values
 """
-function oil_water_rel_perms(;krw0=0.4, kro0=0.9, 
+function oil_water_rel_perms(;krw0=0.4, kro0=0.9,
     swc=0.15, sor=0.2, nw=2.0, no = 2.0)
     return CoreyRelativePermeability(krw0, kro0, swc, sor, nw, no)
 end
@@ -193,7 +193,7 @@ function rel_perm_functions(rel_perm::CoreyRelativePermeability)
     krw = sw -> CF.krw(sw, krw0, sor, swc, nw)
     dkrwdsw = sw -> CF.dkrwdsw(sw, krw0, sor, swc, nw)
     dkrodsw = sw -> CF.dkrodsw(sw, kro0, sor, swc, no)
-  
+
     return krw, kro, dkrwdsw, dkrodsw
 end
 
@@ -206,7 +206,7 @@ function fractional_flow_function(rel_perms, fluids)
     dfw = sw -> ((dkrwdsw(sw)/muw*(krw(sw)/muw+kro(sw)/muo)-
     (dkrwdsw(sw)/muw+dkrodsw(sw)/muo)*krw(sw)/muw)/
     (kro(sw)/muo+krw(sw)/muw)^2)
-    
+
     return fw, dfw
 end
 
@@ -286,7 +286,7 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     sw_max = fzero(f_sw, sw_shock)
     sw_tmp = linspace(sw_shock, sw_max, 100)
     t_D_tmp = 1./dfw.(sw_tmp)
-    
+
     s_av_tmp = sw_tmp-(fw.(sw_tmp)-1).*t_D_tmp
     R_tmp = (s_av_tmp-sw_init)/(1-sw_init)
     append!(R, R_tmp)
@@ -308,7 +308,7 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     xt_tracer = [0.0, xt_tracer_shock, xt_tracer_shock+eps(), xt_prf[end]]
     c_tracer = [1.0, 1.0, 0.0, 0.0]
 
-    return FracFlowResults([fw], [Line([sw_init, fw(sw_init)], [sw_shock, fw(sw_shock)])], 
+    return FracFlowResults([fw], [Line([sw_init, fw(sw_init)], [sw_shock, fw(sw_shock)])],
                             [pv_R R], [pv_R*pv_to_t R], [xt_prf sw_prf], [xt_tracer c_tracer])
     # return pv_R, R, xt_prf, sw_prf # for the time being to test the code
 
@@ -318,17 +318,17 @@ end
 Low salinity water injection into a high salinity aquifer.
 It is assumed that the low salinity fluid has a different relative permeability
 and viscosity. Therefore, two fluids objects needs to be defined.
-In this model, it is assumed that the core is not initially fooded with the 
+In this model, it is assumed that the core is not initially fooded with the
 reservoir brine, i.e., low salinity is the secondary flooding.
 """
-function low_sal_water_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs, 
+function low_sal_water_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs,
     rel_perms_ls, core_flood)
-    ls_res= single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, 
+    ls_res= single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs,
     rel_perms_hs, rel_perms_ls, core_flood, 0.0)
     return ls_res # for the time being to test the code
 end
 
-function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs, 
+function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs,
     rel_perms_ls, core_flood, eq_const)
     # construct the fractional flow curves
     fw_ls, dfw_ls = fractional_flow_function(rel_perms_ls, fluids_ls)
@@ -341,7 +341,7 @@ function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel
     # High sal shock (cross point between the ls tangent and the hs fw)
     sw_shock_hs = cross_point_saturation(fw_hs, rel_perms_hs, (-eq_const, 0.0), (sw_shock_ls, fw_ls(sw_shock_ls)))
     println("high sal sw_shock = $sw_shock_hs")
-    sw_init = core_flood.initial_water_saturation    
+    sw_init = core_flood.initial_water_saturation
     t_D_BT_hs = (sw_shock_hs-sw_init)/(fw_hs(sw_shock_hs)-fw_hs(sw_init)) # breakthrough (BT) time [#PV]
     println("high sal breakthrough time = $t_D_BT_hs")
 
@@ -372,7 +372,7 @@ function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel
     # println(sw_max)
     sw_tmp = linspace(sw_shock_ls, sw_max, 100)
     t_D_tmp = 1./dfw_ls.(sw_tmp)
-    
+
     s_av_tmp = sw_tmp-(fw_ls.(sw_tmp)-1).*t_D_tmp
     R_tmp = (s_av_tmp-sw_init)/(1-sw_init)
     append!(R, R_tmp)
@@ -395,18 +395,18 @@ function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel
     c_tracer = [1.0, 1.0, 0.0, 0.0]
     # return pv_R, R, xt_prf, sw_prf # for the time being to test the code
     return FracFlowResults([fw_hs, fw_ls], [Line([-eq_const, 0.0], [sw_shock_ls, fw_ls(sw_shock_ls)]),
-                            Line([sw_init, fw_hs(sw_init)], [sw_shock_hs, fw_hs(sw_shock_hs)])], 
+                            Line([sw_init, fw_hs(sw_init)], [sw_shock_hs, fw_hs(sw_shock_hs)])],
                             [pv_R R], [pv_R*pv_to_t R], [xt_prf sw_prf], [xt_tracer c_tracer])
 end
 
-function single_ion_adsorption_water_flood_single_shock(core_props, fluids_ls, fluids_hs, rel_perms_hs, 
+function single_ion_adsorption_water_flood_single_shock(core_props, fluids_ls, fluids_hs, rel_perms_hs,
     rel_perms_ls, core_flood, eq_const)
     # ====================================================================
-    # This function is not done yet. The trick is to draw a tangent from 
-    # the high sal 1-sor_hs to the low sal curve to find the shock front 
+    # This function is not done yet. The trick is to draw a tangent from
+    # the high sal 1-sor_hs to the low sal curve to find the shock front
     # saturation. The low sal shock speed is calculated at this saturation
     # by fw/(sw+eq_const)
-    # The implementation needs some if statements to make sure that the 
+    # The implementation needs some if statements to make sure that the
     # shock front saturation calculated by the tangent line from -eq_const
     # to the low sal fw is indeed lower than 1-sor_hs
     # ====================================================================
@@ -419,34 +419,40 @@ function single_ion_adsorption_water_flood_single_shock(core_props, fluids_ls, f
     t_D_BT_ls = 1/dfw_ls(sw_shock_ls) # breakthrough (BT) time [#PV]
     println("low sal breakthrough time = $t_D_BT_ls")
     # High sal shock (cross point between the ls tangent and the hs fw)
-    sw_shock_hs = cross_point_saturation(fw_hs, rel_perms_hs, (-eq_const, 0.0), (sw_shock_ls, fw_ls(sw_shock_ls)))
+    sw_shock_hs = cross_point_saturation(fw_hs, rel_perms_hs, (-eq_const, 0.0),
+            (sw_shock_ls, fw_ls(sw_shock_ls)))
     println("high sal sw_shock = $sw_shock_hs")
-    sw_init = core_flood.initial_water_saturation    
+    sw_init = core_flood.initial_water_saturation
     t_D_BT_hs = (sw_shock_hs-sw_init)/(fw_hs(sw_shock_hs)-fw_hs(sw_init)) # breakthrough (BT) time [#PV]
     println("high sal breakthrough time = $t_D_BT_hs")
     if t_D_BT_hs<t_D_BT_ls
         error("Use the single_ion_adsorption_water_flood function.")
     end
     sor_ls = rel_perms_ls.sor
-    sw_shock = cross_point_saturation(fw_ls, rel_perms_ls, (sw_shock_hs, fw_hs(sw_shock_hs)), 
+    sw_shock = cross_point_saturation(fw_ls, rel_perms_ls, (sw_shock_hs, fw_hs(sw_shock_hs)),
         (sw_init, fw_hs(sw_init)), sw_left = sw_shock_ls, sw_right = 1-sor_ls)
-    # sw_shock = cross_point_saturation(fw_ls, rel_perms_ls, (sw_shock_ls, fw_ls(sw_shock_ls)), 
+    # sw_shock = cross_point_saturation(fw_ls, rel_perms_ls, (-eq_const, 0.0),
+    #         (sw_init, fw_hs(sw_init)), sw_left = sw_shock_ls, sw_right = 1-sor_ls) # just a test
+    # sw_shock = cross_point_saturation(fw_ls, rel_perms_ls, (sw_shock_ls, fw_ls(sw_shock_ls)),
     #     (sw_init, fw_hs(sw_init)), sw_left = sw_shock_ls, sw_right = 1-sor_ls)
     if sw_shock<sw_shock_ls
-        sw_shock = cross_point_saturation(fw_ls, rel_perms_ls, (sw_shock_hs, fw_hs(sw_shock_hs)), 
+        sw_shock = cross_point_saturation(fw_ls, rel_perms_ls, (sw_shock_hs, fw_hs(sw_shock_hs)),
             (sw_init, fw_hs(sw_init)), sw_left = sw_shock_ls, sw_right = 1-sor_ls)
     end
     sor_hs = rel_perms_hs.sor
-    t_D_BT_hs = (sw_shock-sw_init)/(fw_ls(sw_shock)-fw_hs(sw_init))
+    # t_D_BT_hs = (sw_shock-sw_init)/(fw_ls(sw_shock)-fw_hs(sw_init))
+    t_D_BT_hs = (sw_shock+eq_const)/(fw_ls(sw_shock)-0.0)
     println("sw_shock = $sw_shock")
     t_D_BT_ls = 1/dfw_ls(sw_shock)
     println("low sal breakthrough time = $t_D_BT_ls")
 
     # tracer
-    sw_tracer = tangent_line_saturation(rel_perms_ls, fluids_ls, (0.0, 0.0))
-    sw_tracer = max(sw_tracer, sw_shock)
-    t_D_tracer = 1/dfw_ls(sw_tracer)
-    xt_tracer_shock = dfw_ls(sw_tracer)
+    # I'm not sure about this, but the numerical solution suggests that
+    # the tracer front follows the shock front for this special case
+    # sw_tracer = tangent_line_saturation(rel_perms_ls, fluids_ls, (0.0, 0.0))
+    # sw_tracer = max(sw_tracer, sw_shock)
+    t_D_tracer = (sw_shock-sw_init)/(fw_ls(sw_shock)-fw_hs(sw_init))
+    xt_tracer_shock = 1/t_D_tracer
 
     # construct the recovery factor curve versus the # of PV
     R = zeros(1)
@@ -466,9 +472,9 @@ function single_ion_adsorption_water_flood_single_shock(core_props, fluids_ls, f
     println("swmax $sw_max")
     sw_tmp = linspace(sw_shock, sw_max, 100)
     t_D_tmp = 1./dfw_ls.(sw_tmp)
-    
+
     s_av_tmp = sw_tmp-(fw_ls.(sw_tmp)-1).*t_D_tmp
-    R_tmp = (s_av_tmp-sw_init)/(1-sw_init)    
+    R_tmp = (s_av_tmp-sw_init)/(1-sw_init)
     append!(R, R_tmp)
     append!(pv_R, t_D_tmp)
 
@@ -487,17 +493,17 @@ function single_ion_adsorption_water_flood_single_shock(core_props, fluids_ls, f
     xt_tracer = [0.0, xt_tracer_shock, xt_tracer_shock+eps(), xt_prf[end]]
     c_tracer = [1.0, 1.0, 0.0, 0.0]
     return FracFlowResults([fw_hs, fw_ls], [Line([-eq_const, 0.0], [sw_shock_ls, fw_ls(sw_shock_ls)]),
-                            Line([sw_init, fw_hs(sw_init)], [sw_shock_hs, fw_hs(sw_shock_hs)])], 
+                            Line([sw_init, fw_hs(sw_init)], [sw_shock_hs, fw_hs(sw_shock_hs)])],
                             [pv_R R], [pv_R*pv_to_t R], [xt_prf sw_prf], [xt_tracer c_tracer])
     # return pv_R, R, xt_prf, sw_prf # for the time being to test the code
 end
 
 """
-the eq_const is defined as the ratio of the volume fraction of the solvent in oil to 
+the eq_const is defined as the ratio of the volume fraction of the solvent in oil to
 its volume fraction in water. For instance, For DME, the molar fraction is around 2.0
 One criteria is that eq_const should probably be higher than 1.
 """
-function water_soluble_solvent_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs, 
+function water_soluble_solvent_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs,
     rel_perms_ls, core_flood, eq_const)
     # construct the fractional flow curves
     fw_ls, dfw_ls = fractional_flow_function(rel_perms_ls, fluids_ls)
@@ -511,10 +517,10 @@ function water_soluble_solvent_flood(core_props, fluids_ls, fluids_hs, rel_perms
     # High sal shock (cross point between the ls tangent and the hs fw)
     sw_shock_hs = cross_point_saturation(fw_hs, rel_perms_hs, point1, (sw_shock_ls, fw_ls(sw_shock_ls)))
     println("high sal sw_shock = $sw_shock_hs")
-    sw_init = core_flood.initial_water_saturation    
+    sw_init = core_flood.initial_water_saturation
     t_D_BT_hs = (sw_shock_hs-sw_init)/(fw_hs(sw_shock_hs)-fw_hs(sw_init)) # breakthrough (BT) time [#PV]
     println("high sal breakthrough time = $t_D_BT_hs")
-    
+
     # construct the recovery factor curve versus the # of PV
     R = zeros(1)
     pv_R = zeros(1)
@@ -531,7 +537,7 @@ function water_soluble_solvent_flood(core_props, fluids_ls, fluids_hs, rel_perms
     sw_max = fzero(f_sw, sw_shock_ls)
     sw_tmp = linspace(sw_shock_ls, sw_max, 100)
     t_D_tmp = 1./dfw_ls.(sw_tmp)
-    
+
     s_av_tmp = sw_tmp-(fw_ls.(sw_tmp)-1).*t_D_tmp
     R_tmp = (s_av_tmp-sw_init)/(1-sw_init)
     append!(R, R_tmp)
