@@ -593,6 +593,11 @@ function water_soluble_solvent_flood(core_props, fluids_ls, fluids_hs, rel_perms
     t_D_BT_hs = (sw_shock_hs-sw_init)/(fw_hs(sw_shock_hs)-fw_hs(sw_init)) # breakthrough (BT) time [#PV]
     println("high sal breakthrough time = $t_D_BT_hs")
 
+    # tracer
+    sw_tracer = tangent_line_saturation(rel_perms_ls, fluids_ls, (0.0, 0.0))
+    t_D_tracer = 1/dfw_ls(sw_tracer)
+    xt_tracer_shock = dfw_ls(sw_tracer)
+
     # construct the recovery factor curve versus the # of PV
     R = zeros(1)
     pv_R = zeros(1)
@@ -620,14 +625,21 @@ function water_soluble_solvent_flood(core_props, fluids_ls, fluids_hs, rel_perms
     sw_inj = core_flood.injected_water_saturation
     phi = core_props.porosity
     ut = core_flood.injection_velocity
+    L = core_props.length
+    pv_to_t = phi*L/ut
     s1 = collect(linspace(min(sw_inj, 1-sor-eps()), sw_shock_ls-eps(), 100))
     xt_s1 = dfw_ls.(s1)
     xt_shock_ls = 1/t_D_BT_ls
     xt_shock_hs = 1/t_D_BT_hs
     xt_prf=[xt_s1; xt_shock_ls; xt_shock_ls+eps(); xt_shock_hs; xt_shock_hs+eps(); 1/0.3]
     sw_prf=[s1; sw_shock_ls; sw_shock_hs; sw_shock_hs; sw_init; sw_init]
-
-    return pv_R, R, xt_prf, sw_prf # for the time being to test the code
+    xt_tracer = [0.0, xt_tracer_shock, xt_tracer_shock+eps(), xt_prf[end]]
+    c_tracer = [1.0, 1.0, 0.0, 0.0]
+    # return pv_R, R, xt_prf, sw_prf # for the time being to test the code
+    return FracFlowResults([fw_hs, fw_ls], [Line([-eq_const/(1-eq_const), -eq_const/(1-eq_const)],
+                            [sw_shock_ls, fw_ls(sw_shock_ls)]),
+                            Line([sw_init, fw_hs(sw_init)], [sw_shock_hs, fw_hs(sw_shock_hs)])],
+                            [pv_R R], [pv_R*pv_to_t R], [xt_prf sw_prf], [xt_tracer c_tracer])
 
 end
 
