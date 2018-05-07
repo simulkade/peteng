@@ -5,6 +5,7 @@ include("CoreyFunctions.jl")
 include("water_flood_fvm.jl")
 include("water_flood_fvm_upwind.jl")
 include("fractional_flow_cases.jl")
+include("HTMLElements.jl")
 CF = CoreyFunctions
 
 # types:
@@ -87,32 +88,102 @@ visualize(rel_perm::CoreyRelativePermeability)
 This function visualizes the relative permeability curve that is defined
 by a CoreyRelativePermeability structure
 """
-function visualize(rel_perms::CoreyRelativePermeability)
+function visualize(rel_perms::CoreyRelativePermeability; label="")
     # convert the rel_perm structure to the rel_perm functions
     krw, kro, dkrwdsw, dkrodsw = rel_perm_functions(rel_perms)
     sw = linspace(0,1, 100)
-    plot(sw, krw.(sw), label="krw")
-    plot(sw, kro.(sw), label="kro")
+    plot(sw, krw.(sw), label="krw-$label")
+    plot(sw, kro.(sw), label="kro-$label")
     xlabel("Sw")
     ylabel("Relative permeability")
     legend()
 end
 
-function visualize(rel_perms::CoreyRelativePermeability, fluids::Fluids)
+"""
+tabulate the fluids viscosity
+"""
+function print_fluids(fluids::Fluids; title = nothing)
+    HTMLElements.table([fluids.oil_viscosity fluids.water_viscosity],
+        header_row=[:mu_water, :mu_oil], title=title)
+end
+
+"""
+tabulate the core properties
+"""
+function print_core_properties(core_props::CoreProperties; title=nothing)
+    core_param = [core_props.length core_props.diameter core_props.porosity core_props.permeability]
+    HTMLElements.table(core_param, header_row=[:length, :diameter, :porosity, :permeability], title=title)
+end
+
+"""
+tabulate the ralative permeability table in a readable format
+"""
+function print_relperm(rel_perm::CoreyRelativePermeability; title=nothing)
+    rel_perm_params = [rel_perm.krw0 rel_perm.kro0 rel_perm.nw rel_perm.no rel_perm.swc rel_perm.sor]
+    HTMLElements.table(rel_perm_params, header_row = [:krw0, :kro0, :nw, :no, :Swc, :Sor], title=title)
+end
+
+"""
+tabulates the core flooding conditions
+"""
+function print_core_flood(core_flood::CoreFlooding; title=nothing)
+    core_flood_param = [core_flood.injection_velocity core_flood.injected_pore_volume core_flood.initial_water_saturation core_flood.injected_water_saturation]
+    header_row = [:u_inj_m_s, :pv_injected, :Sw_init, :Sw_inj]
+    HTMLElements.table(core_flood_param, header_row = header_row, title=title)
+end
+
+
+"""
+This function visualizes the fractional flow curves
+"""
+function visualize(rel_perms::CoreyRelativePermeability, fluids::Fluids; label="")
     # convert the rel_perm structure to the rel_perm functions
     fw, dfw = fractional_flow_function(rel_perms, fluids)
     sw = linspace(0,1, 100)
     subplot(2,1,1)
-    plot(sw, fw.(sw), label="fw")
+    plot(sw, fw.(sw), label="fw-$label")
     xlabel("Sw [-]")
     ylabel("Fractional flow [-]")
     legend()
     subplot(2,1,2)
-    plot(sw, dfw.(sw), label="dfw/dSw")
+    plot(sw, dfw.(sw), label="dfw/dSw-$label")
     xlabel("Sw [-]")
     ylabel("Fractional flow derivative [-]")
     legend()
 end
+
+"""
+Only visualizes the solution procedure
+"""
+function visualize_solution(wf_res::FracFlowResults)
+    # plot the fractional flow functions and the solution procedure
+    fw = wf_res.fractional_flow_functions
+    sw = linspace(0, 1, 100)
+    for f in fw
+        plot(sw, f.(sw))
+    end
+    shock_lines = wf_res.shock_lines
+    for sl in shock_lines
+        plot(sl.start_point[1], sl.start_point[2], "ro")
+        plot(sl.end_point[1], sl.end_point[2], "ro")
+        plot([sl.start_point[1], sl.end_point[1]], [sl.start_point[2], sl.end_point[2]])
+    end
+    xlabel("Water saturation [-]")
+    ylabel("water fractional flow [-]")
+    legend()
+end
+
+"""
+visualize the saturation and concentration profiles
+"""
+function visualize_profiles(wf_res::FracFlowResults)
+    plot(wf_res.saturation_profile_xt[:,1], wf_res.saturation_profile_xt[:,2], label = "Sw")
+    plot(wf_res.tracer_profile_xt[:,1], wf_res.tracer_profile_xt[:,2], label = "tracer")
+    xlabel("xD/tD [-]")
+    ylabel("Water saturation")
+    legend()
+end
+
 
 """
 visualize the fractional flow results
@@ -129,7 +200,7 @@ function visualize(wf_res::FracFlowResults)
     for sl in shock_lines
         plot(sl.start_point[1], sl.start_point[2], "ro")
         plot(sl.end_point[1], sl.end_point[2], "ro")
-        plot([sl.start_point[1], sl.end_point[1]], [sl.start_point[2], sl.end_point[2]], "r")
+        plot([sl.start_point[1], sl.end_point[1]], [sl.start_point[2], sl.end_point[2]])
     end
     xlabel("Water saturation [-]")
     ylabel("water fractional flow [-]")
@@ -139,10 +210,10 @@ function visualize(wf_res::FracFlowResults)
     xlabel("Pore volume [-]")
     ylabel("Recovery factor")
     # plot the recovery factors (time)
-    figure()
-    plot(wf_res.recovery_time[:,1], wf_res.recovery_time[:,2])
-    xlabel("time [s]")
-    ylabel("Recovery factor")
+    # figure()
+    # plot(wf_res.recovery_time[:,1], wf_res.recovery_time[:,2])
+    # xlabel("time [s]")
+    # ylabel("Recovery factor")
     # plot the saturation profile
     figure()
     plot(wf_res.saturation_profile_xt[:,1], wf_res.saturation_profile_xt[:,2], label = "Sw")
@@ -451,7 +522,7 @@ function single_ion_adsorption_water_flood_single_shock(core_props, fluids_ls, f
     # the tracer front follows the shock front for this special case
     # sw_tracer = tangent_line_saturation(rel_perms_ls, fluids_ls, (0.0, 0.0))
     # sw_tracer = max(sw_tracer, sw_shock)
-    t_D_tracer = (sw_shock-sw_init)/(fw_ls(sw_shock)-fw_hs(sw_init))
+    t_D_tracer = t_D_BT_hs # (sw_shock-sw_init)/(fw_ls(sw_shock)-fw_hs(sw_init))
     xt_tracer_shock = 1/t_D_tracer
 
     # construct the recovery factor curve versus the # of PV
@@ -493,7 +564,8 @@ function single_ion_adsorption_water_flood_single_shock(core_props, fluids_ls, f
     xt_tracer = [0.0, xt_tracer_shock, xt_tracer_shock+eps(), xt_prf[end]]
     c_tracer = [1.0, 1.0, 0.0, 0.0]
     return FracFlowResults([fw_hs, fw_ls], [Line([-eq_const, 0.0], [sw_shock_ls, fw_ls(sw_shock_ls)]),
-                            Line([sw_init, fw_hs(sw_init)], [sw_shock_hs, fw_hs(sw_shock_hs)])],
+                            Line([sw_init, fw_hs(sw_init)], [sw_shock_hs, fw_hs(sw_shock_hs)]),
+                            Line([sw_shock, fw_ls(sw_shock)], [sw_init, fw_hs(sw_init)])],
                             [pv_R R], [pv_R*pv_to_t R], [xt_prf sw_prf], [xt_tracer c_tracer])
     # return pv_R, R, xt_prf, sw_prf # for the time being to test the code
 end
