@@ -76,27 +76,341 @@
 
 \begin_body
 
+\begin_layout Title
+A 
+\begin_inset Quotes eld
+\end_inset
+
+Fractional Flow
+\begin_inset Quotes erd
+\end_inset
+
+ package for the modelling of modified-salinity-water and water-soluble-solvent
+ flooding
+\end_layout
+
+\begin_layout Author
+Ali A.
+ Eftekhari
+\end_layout
+
+\begin_layout Abstract
+This document describes the fractional flow formulation and the graphical
+ solution for several types of water flooding problems, including the well-known
+ Buckley-Leverett problem, modified-salinity water flooding with and without
+ single ion adsorption, and water-soluble-solvent flooding (e.g., dimethyl
+ ether and carbon dioxide).
+ A finite volume solver is also provided so that the user can compare the
+ numerical solution with the analytical one, i.e., validate the numerical
+ solution.
+ Moreover, the user can use the numerical code to solve the same problem
+ for the 2D and 3D domains, with extra details (e.g.
+ heterogeneity).
+ The code and many examples are available as an open source package called
+ 'FractionalFlow.jl'.
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+For the importance of the fractional flow formulation and its analytical
+ solution, I refer the reader to the classic textbook of Lake et al.
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "lake2014fundamentals"
+literal "false"
+
+\end_inset
+
+.
+ The work that is documented here are mostly based on the work of Pope 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "pope1980application"
+literal "false"
+
+\end_inset
+
+.
+ I have also benefited vastly from several other classic papers 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "helfferich1981theory,helfferich1982generalized,welge1952simplified"
+literal "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Section
+Mathematical formulation
+\end_layout
+
+\begin_layout Standard
+This section describes the mathematical formulation of the problem.
+ Only the two phase flow systems (oil and water) are formulated.
+ I have also included the formulation for the transport of a water soluble
+ tracer, to track the front and breakthrough time of the injected water.
+ I will only describe the mathematical details of a simple water flooding,
+ and for the modified-salinity water flooding and the water-soluble solvent
+ flooding, only describe the solution procedure.
+\end_layout
+
+\begin_layout Subsection
+Water flooding
+\end_layout
+
+\begin_layout Standard
+The two phase flow in porous media, i.e., the mass balance for incompressible
+ fluids, i.e., the volume balance for two fluids, reads
+\end_layout
+
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-\varphi\frac{\partial S_{w}}{\partial t}+\frac{\partial u_{w}}{\partial x}=0
+\varphi\frac{\partial S_{w}}{\partial t}+\frac{\partial u_{w}}{\partial x}=0,\label{eq:two-phase-flow}
 \end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $S_{w}$
+\end_inset
+
+ [m
+\begin_inset Formula $^{3}$
+\end_inset
+
+ water/m
+\begin_inset Formula $^{3}$
+\end_inset
+
+ pore space] is the water saturation, 
+\begin_inset Formula $\varphi$
+\end_inset
+
+ [m
+\begin_inset Formula $^{3}$
+\end_inset
+
+ pore/m
+\begin_inset Formula $^{3}$
+\end_inset
+
+ total volume] is the porosity, and 
+\begin_inset Formula $u_{w}$
+\end_inset
+
+ [m/s] is the water Darcy velocity, i.e., water flow rate per cross sectional
+ area.
+ 
+\end_layout
+
+\begin_layout Standard
+We can write the above equation for the dimensionless time and space, which
+ are defined by
+\begin_inset Formula 
+\[
+t_{D}=\frac{u_{w}t}{\varphi L}\qquad,\quad x_{D}=\frac{x}{L},
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $L$
+\end_inset
+
+ [m] is the length of the porous medium, i.e., the domain.
+\end_layout
+
+\begin_layout Standard
+The mass (or volume) balance for the water soluble tracer is written as
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\varphi\frac{\partial}{\partial t}\left(c_{w}S_{w}\right)+\frac{\partial}{\partial x}\left(c_{w}u_{w}\right)=0,\label{eq:tracer}
+\end{equation}
+
+\end_inset
+
+where 
+\begin_inset Formula $c_{w}$
+\end_inset
+
+ [m
+\begin_inset Formula $^{3}$
+\end_inset
+
+ solute/m
+\begin_inset Formula $^{3}$
+\end_inset
+
+ aqueous phase] is the volume fraction of the tracer in the aqueous phase.
+ Appendix 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "sec:Thermodynamic-relations"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+ describes the thermodynamic relationships between the molar, mass, and
+ volume fractions.
+\end_layout
+
+\begin_layout Standard
+The aqueous and oleic phase Darcy velocities 
+\begin_inset Formula $u_{w}$
+\end_inset
+
+ [m/s] and 
+\begin_inset Formula $u_{o}$
+\end_inset
+
+ [m/s] are defined by the extended Darcy's law:
+\begin_inset Formula 
+\begin{equation}
+\mathbf{u}_{\alpha}=-\frac{k_{r\alpha}k}{\mu_{\alpha}}\nabla p,\qquad\alpha=o,w.\label{eq:extended-darcy}
+\end{equation}
+
+\end_inset
+
+The total velocity, 
+\begin_inset Formula $u_{t}$
+\end_inset
+
+ [m/s] is defined by 
+\begin_inset Formula 
+\begin{equation}
+\mathbf{u}_{t}=\mathbf{u}_{w}+\mathbf{u}_{o}.\label{eq:total-velocity}
+\end{equation}
+
+\end_inset
+
+For an isothermal system with a constant cross-sectional area and incompressible
+ fluids, where water is injected with a constant flow rate 
+\begin_inset Formula $q_{w}$
+\end_inset
+
+ [m
+\begin_inset Formula $^{3}$
+\end_inset
+
+/s], the total velocity is constant.
+ For the core flooding experiments, the total velocity is defined by
+\begin_inset Formula 
+\[
+u=\left|\mathbf{u}_{t}\right|=\frac{q_{w}}{\pi\left(D/2\right)^{2}},
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula $q_{w}$
+\end_inset
+
+ [m
+\begin_inset Formula $^{3}$
+\end_inset
+
+/s] is the water injection rate and 
+\begin_inset Formula $D$
+\end_inset
+
+ [m] is the diameter of the core.
+ By substituting Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:extended-darcy"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+) in Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:total-velocity"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+), one can obtain
+\begin_inset Formula 
+\[
+u_{w}=\frac{k_{rw}/\mu_{w}}{k_{rw}/\mu_{w}+k_{ro}/\mu_{o}}u,
+\]
 
 \end_inset
 
 
 \begin_inset Formula 
+\[
+u_{o}=\frac{k_{ro}/\mu_{o}}{k_{rw}/\mu_{w}+k_{ro}/\mu_{o}}u
+\]
+
+\end_inset
+
+We define the fractional flow of the aqueous phase 
+\begin_inset Formula $f_{w}$
+\end_inset
+
+ [-]:
+\begin_inset Formula 
+\[
+f_{w}\equiv\frac{k_{rw}/\mu_{w}}{k_{rw}/\mu_{w}+k_{ro}/\mu_{o}},
+\]
+
+\end_inset
+
+which is substituted in Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:two-phase-flow"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+) to obtain 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
 \begin{equation}
-\varphi\frac{\partial}{\partial t}\left(c_{w}S_{w}\right)+\frac{\partial}{\partial x}\left(c_{w}u_{w}\right)=0\label{eq:tracer}
+\frac{\partial S_{w}}{\partial t}+\frac{u}{\varphi}\frac{\partial}{\partial x}\left(f_{w}u\right)=0.
 \end{equation}
 
 \end_inset
 
+Since 
+\begin_inset Formula $f_{w}$
+\end_inset
 
+ is only a function of 
+\begin_inset Formula $S_{w}$
+\end_inset
+
+, we can write
 \begin_inset Formula 
-\begin{equation}
-u_{w}=f_{w}u_{t}=\frac{k_{rw}/\mu_{w}}{k_{rw}/\mu_{w}+k_{ro}/\mu_{o}}
-\end{equation}
+\[
+\frac{\partial S_{w}}{\partial t}+\frac{u_{t}}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\frac{\partial S_{w}}{\partial x}=0.
+\]
 
 \end_inset
 
@@ -119,7 +433,7 @@ noprefix "false"
 
 \end_inset
 
-We end up with the following equations:
+We end up with the following two equations:
 \begin_inset Formula 
 \[
 \frac{\partial S_{w}}{\partial t}+\frac{u_{t}}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\frac{\partial S_{w}}{\partial x}=0
@@ -151,12 +465,12 @@ Total derivative of saturation and concentration are calculated by
 
 \end_inset
 
-Tracing a constant saturation and concentration in the core, i.e., 
+Tracing a constant saturation and concentration in the domain, i.e., 
 \begin_inset Formula $\textrm{d}S_{w}=0$
 \end_inset
 
  and 
-\begin_inset Formula $\textrm{d}S_{w}=0$
+\begin_inset Formula $\textrm{d}c_{w}=0$
 \end_inset
 
 , we obtain
@@ -284,6 +598,36 @@ Looking at the above equation, one can see that even though the concentration
 \end_inset
 
  at the injection concentration is important and affects the solution.
+\end_layout
+
+\begin_layout Standard
+\begin_inset CommandInset bibtex
+LatexCommand bibtex
+btprint "btPrintCited"
+bibfiles "frac_flow"
+options "bibtotoc,plain"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Section
+\start_of_appendix
+Thermodynamic relations
+\begin_inset CommandInset label
+LatexCommand label
+name "sec:Thermodynamic-relations"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+This section contains some important thermodynamic relationships that are
+ required in the formulation of the modified-salinity and water-soluble-solvent
+ flooding.
 \end_layout
 
 \end_body

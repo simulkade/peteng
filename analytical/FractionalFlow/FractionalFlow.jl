@@ -410,7 +410,8 @@ function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel
     t_D_BT_ls = 1/dfw_ls(sw_shock_ls) # breakthrough (BT) time [#PV]
     println("low sal breakthrough time = $t_D_BT_ls")
     # High sal shock (cross point between the ls tangent and the hs fw)
-    sw_shock_hs = cross_point_saturation(fw_hs, rel_perms_hs, (-eq_const, 0.0), (sw_shock_ls, fw_ls(sw_shock_ls)))
+    sw_shock_hs = cross_point_saturation(fw_hs, rel_perms_hs, (-eq_const, 0.0), 
+        (sw_shock_ls, fw_ls(sw_shock_ls)))
     println("high sal sw_shock = $sw_shock_hs")
     sw_init = core_flood.initial_water_saturation
     t_D_BT_hs = (sw_shock_hs-sw_init)/(fw_hs(sw_shock_hs)-fw_hs(sw_init)) # breakthrough (BT) time [#PV]
