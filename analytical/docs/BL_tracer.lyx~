@@ -277,9 +277,9 @@ The aqueous and oleic phase Darcy velocities
 
  [m/s] are defined by the extended Darcy's law:
 \begin_inset Formula 
-\[
-\mathbf{u}_{\alpha}=-\frac{k_{r\alpha}k}{\mu_{\alpha}}\nabla p,\qquad\alpha=o,w.
-\]
+\begin{equation}
+\mathbf{u}_{\alpha}=-\frac{k_{r\alpha}k}{\mu_{\alpha}}\nabla p,\qquad\alpha=o,w.\label{eq:extended-darcy}
+\end{equation}
 
 \end_inset
 
@@ -289,9 +289,9 @@ The total velocity,
 
  [m/s] is defined by 
 \begin_inset Formula 
-\[
-\mathbf{u}_{t}=\mathbf{u}_{w}+\mathbf{u}_{o}.
-\]
+\begin{equation}
+\mathbf{u}_{t}=\mathbf{u}_{w}+\mathbf{u}_{o}.\label{eq:total-velocity}
+\end{equation}
 
 \end_inset
 
@@ -326,21 +326,94 @@ where
 \end_inset
 
  [m] is the diameter of the core.
- 
+ By substituting Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:extended-darcy"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+) in Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:total-velocity"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+), one can obtain
+\begin_inset Formula 
+\[
+u_{w}=\frac{k_{rw}/\mu_{w}}{k_{rw}/\mu_{w}+k_{ro}/\mu_{o}}u,
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+u_{o}=\frac{k_{ro}/\mu_{o}}{k_{rw}/\mu_{w}+k_{ro}/\mu_{o}}u
+\]
+
+\end_inset
+
+We define the fractional flow of the aqueous phase 
+\begin_inset Formula $f_{w}$
+\end_inset
+
+ [-]:
+\begin_inset Formula 
+\[
+f_{w}\equiv\frac{k_{rw}/\mu_{w}}{k_{rw}/\mu_{w}+k_{ro}/\mu_{o}},
+\]
+
+\end_inset
+
+which is substituted in Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:two-phase-flow"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+) to obtain 
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-u_{w}=f_{w}u=\frac{k_{rw}/\mu_{w}}{k_{rw}/\mu_{w}+k_{ro}/\mu_{o}}
+\frac{\partial S_{w}}{\partial t}+\frac{u}{\varphi}\frac{\partial}{\partial x}\left(f_{w}u\right)=0.
 \end{equation}
 
 \end_inset
 
+Since 
+\begin_inset Formula $f_{w}$
+\end_inset
 
-\end_layout
+ is only a function of 
+\begin_inset Formula $S_{w}$
+\end_inset
 
-\begin_layout Standard
+, we can write
+\begin_inset Formula 
+\[
+\frac{\partial S_{w}}{\partial t}+\frac{u}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\frac{\partial S_{w}}{\partial x}=0.
+\]
+
+\end_inset
+
 From Eq.
  (
 \begin_inset CommandInset ref
@@ -360,10 +433,10 @@ noprefix "false"
 
 \end_inset
 
-We end up with the following equations:
+We end up with the following two equations:
 \begin_inset Formula 
 \[
-\frac{\partial S_{w}}{\partial t}+\frac{u_{t}}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\frac{\partial S_{w}}{\partial x}=0
+\frac{\partial S_{w}}{\partial t}+\frac{u}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\frac{\partial S_{w}}{\partial x}=0
 \]
 
 \end_inset
@@ -371,7 +444,7 @@ We end up with the following equations:
 
 \begin_inset Formula 
 \[
-\frac{\partial c_{w}}{\partial t}+\frac{u_{t}f_{w}}{\varphi S_{w}}\frac{\partial c_{w}}{\partial x}=0
+\frac{\partial c_{w}}{\partial t}+\frac{uf_{w}}{\varphi S_{w}}\frac{\partial c_{w}}{\partial x}=0
 \]
 
 \end_inset
@@ -392,12 +465,12 @@ Total derivative of saturation and concentration are calculated by
 
 \end_inset
 
-Tracing a constant saturation and concentration in the core, i.e., 
+Tracing a constant saturation and concentration in the domain, i.e., 
 \begin_inset Formula $\textrm{d}S_{w}=0$
 \end_inset
 
  and 
-\begin_inset Formula $\textrm{d}S_{w}=0$
+\begin_inset Formula $\textrm{d}c_{w}=0$
 \end_inset
 
 , we obtain
@@ -419,7 +492,7 @@ Tracing a constant saturation and concentration in the core, i.e.,
 Replacing the above equations in the PDE's, we obtain
 \begin_inset Formula 
 \[
-\left(\frac{\textrm{d}x}{\textrm{d}t}\right)_{S_{w}}=\frac{u_{t}}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}},
+\left(\frac{\textrm{d}x}{\textrm{d}t}\right)_{S_{w}}=\frac{u}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}},
 \]
 
 \end_inset
@@ -427,7 +500,7 @@ Replacing the above equations in the PDE's, we obtain
 
 \begin_inset Formula 
 \[
-\left(\frac{\textrm{d}x}{\textrm{d}t}\right)_{c_{w}}=\frac{u_{t}f_{w}}{\varphi S_{w}}.
+\left(\frac{\textrm{d}x}{\textrm{d}t}\right)_{c_{w}}=\frac{uf_{w}}{\varphi S_{w}}.
 \]
 
 \end_inset
@@ -435,7 +508,7 @@ Replacing the above equations in the PDE's, we obtain
 Integrating the above equation, we get
 \begin_inset Formula 
 \[
-\int_{0}^{x}\textrm{d}x=\frac{u_{t}}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\int_{0}^{t}\textrm{d}t
+\int_{0}^{x}\textrm{d}x=\frac{u}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\int_{0}^{t}\textrm{d}t
 \]
 
 \end_inset
@@ -443,7 +516,7 @@ Integrating the above equation, we get
 or
 \begin_inset Formula 
 \[
-\left(\frac{x}{t}\right)_{S_{w}}=\frac{u_{t}}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}},
+\left(\frac{x}{t}\right)_{S_{w}}=\frac{u}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}},
 \]
 
 \end_inset
@@ -451,7 +524,23 @@ or
 
 \begin_inset Formula 
 \[
-\left(\frac{x}{t}\right)_{c_{w}}=\frac{u_{t}f_{w}}{\varphi S_{w}}.
+\left(\frac{x}{t}\right)_{c_{w}}=\frac{uf_{w}}{\varphi S_{w}},
+\]
+
+\end_inset
+
+or in dimensionless form:
+\begin_inset Formula 
+\[
+\left(\frac{x_{D}}{t_{D}}\right)_{S_{w}}=\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}},
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left(\frac{x_{D}}{t_{D}}\right)_{c_{w}}=\frac{f_{w}}{S_{w}}.
 \]
 
 \end_inset
@@ -459,21 +548,31 @@ or
 The shock velocities are calculated by a mass balance at the shock front
  (following Lake):
 \begin_inset Formula 
-\[
-v_{shock,S_{w}}=\frac{f_{w}\left(S_{w}^{*}\right)-f_{w}\left(S_{w,0}\right)}{S_{w}^{*}-S_{w,0}}
-\]
+\begin{equation}
+v_{shock,S_{w}}=\left(\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\right)_{S_{w}^{*}}=\frac{f_{w}\left(S_{w}^{*}\right)-f_{w}\left(S_{w,0}\right)}{S_{w}^{*}-S_{w,0}},\label{eq:shock-BL}
+\end{equation}
 
 \end_inset
 
 
 \begin_inset Formula 
-\[
-v_{shock,S_{w}}=\frac{f_{w}\left(S_{w}^{*}\right)-f_{w}\left(S_{w,0}\right)}{S_{w}^{*}-S_{w,0}}
-\]
+\begin{equation}
+v_{shock,c_{w}}=\left(\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\right)_{S_{w2}^{*}}=\frac{f_{w}\left(S_{w2}^{*}\right)}{S_{w2}^{*}}.\label{eq:shock-BL-tracer}
+\end{equation}
 
 \end_inset
 
+In the graphical representation of Eq.
+ () and Eq.
+ () are the tangent lines to the fractional flow curves from the point 
+\begin_inset Formula $\left(S_{w,0},f_{w}\left(S_{w,0}\right)\right)$
+\end_inset
 
+ and 
+\begin_inset Formula $\left(0,0\right)$
+\end_inset
+
+, respectively.
 \end_layout
 
 \begin_layout Section
@@ -525,6 +624,35 @@ Looking at the above equation, one can see that even though the concentration
 \end_inset
 
  at the injection concentration is important and affects the solution.
+\end_layout
+
+\begin_layout Section
+Analytical solution procedure
+\end_layout
+
+\begin_layout Standard
+I follow the graphical solution procedure that is suggested by Pope 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "pope1980application"
+literal "false"
+
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Section
+Numerical solution procedure
+\end_layout
+
+\begin_layout Standard
+For the numerical solution, we use a fully implicit finite volume solver
+ implemented in Julia programming language.
+ Second order method is used for the discretization of the diffusion terms
+ (i.e., pressure equation), and upwind method (first order) is used for the
+ advection terms.
 \end_layout
 
 \begin_layout Standard

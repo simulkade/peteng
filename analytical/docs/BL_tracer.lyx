@@ -409,7 +409,7 @@ Since
 , we can write
 \begin_inset Formula 
 \[
-\frac{\partial S_{w}}{\partial t}+\frac{u_{t}}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\frac{\partial S_{w}}{\partial x}=0.
+\frac{\partial S_{w}}{\partial t}+\frac{u}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\frac{\partial S_{w}}{\partial x}=0.
 \]
 
 \end_inset
@@ -436,7 +436,7 @@ noprefix "false"
 We end up with the following two equations:
 \begin_inset Formula 
 \[
-\frac{\partial S_{w}}{\partial t}+\frac{u_{t}}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\frac{\partial S_{w}}{\partial x}=0
+\frac{\partial S_{w}}{\partial t}+\frac{u}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\frac{\partial S_{w}}{\partial x}=0
 \]
 
 \end_inset
@@ -444,7 +444,7 @@ We end up with the following two equations:
 
 \begin_inset Formula 
 \[
-\frac{\partial c_{w}}{\partial t}+\frac{u_{t}f_{w}}{\varphi S_{w}}\frac{\partial c_{w}}{\partial x}=0
+\frac{\partial c_{w}}{\partial t}+\frac{uf_{w}}{\varphi S_{w}}\frac{\partial c_{w}}{\partial x}=0
 \]
 
 \end_inset
@@ -492,7 +492,7 @@ Tracing a constant saturation and concentration in the domain, i.e.,
 Replacing the above equations in the PDE's, we obtain
 \begin_inset Formula 
 \[
-\left(\frac{\textrm{d}x}{\textrm{d}t}\right)_{S_{w}}=\frac{u_{t}}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}},
+\left(\frac{\textrm{d}x}{\textrm{d}t}\right)_{S_{w}}=\frac{u}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}},
 \]
 
 \end_inset
@@ -500,7 +500,7 @@ Replacing the above equations in the PDE's, we obtain
 
 \begin_inset Formula 
 \[
-\left(\frac{\textrm{d}x}{\textrm{d}t}\right)_{c_{w}}=\frac{u_{t}f_{w}}{\varphi S_{w}}.
+\left(\frac{\textrm{d}x}{\textrm{d}t}\right)_{c_{w}}=\frac{uf_{w}}{\varphi S_{w}}.
 \]
 
 \end_inset
@@ -508,7 +508,7 @@ Replacing the above equations in the PDE's, we obtain
 Integrating the above equation, we get
 \begin_inset Formula 
 \[
-\int_{0}^{x}\textrm{d}x=\frac{u_{t}}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\int_{0}^{t}\textrm{d}t
+\int_{0}^{x}\textrm{d}x=\frac{u}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\int_{0}^{t}\textrm{d}t
 \]
 
 \end_inset
@@ -516,7 +516,7 @@ Integrating the above equation, we get
 or
 \begin_inset Formula 
 \[
-\left(\frac{x}{t}\right)_{S_{w}}=\frac{u_{t}}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}},
+\left(\frac{x}{t}\right)_{S_{w}}=\frac{u}{\varphi}\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}},
 \]
 
 \end_inset
@@ -524,7 +524,23 @@ or
 
 \begin_inset Formula 
 \[
-\left(\frac{x}{t}\right)_{c_{w}}=\frac{u_{t}f_{w}}{\varphi S_{w}}.
+\left(\frac{x}{t}\right)_{c_{w}}=\frac{uf_{w}}{\varphi S_{w}},
+\]
+
+\end_inset
+
+or in dimensionless form:
+\begin_inset Formula 
+\[
+\left(\frac{x_{D}}{t_{D}}\right)_{S_{w}}=\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}},
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left(\frac{x_{D}}{t_{D}}\right)_{c_{w}}=\frac{f_{w}}{S_{w}}.
 \]
 
 \end_inset
@@ -532,21 +548,51 @@ or
 The shock velocities are calculated by a mass balance at the shock front
  (following Lake):
 \begin_inset Formula 
-\[
-v_{shock,S_{w}}=\frac{f_{w}\left(S_{w}^{*}\right)-f_{w}\left(S_{w,0}\right)}{S_{w}^{*}-S_{w,0}}
-\]
+\begin{equation}
+v_{shock,S_{w}}=\left(\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\right)_{S_{w}^{*}}=\frac{f_{w}\left(S_{w}^{*}\right)-f_{w}\left(S_{w,0}\right)}{S_{w}^{*}-S_{w,0}},\label{eq:shock-BL}
+\end{equation}
 
 \end_inset
 
 
 \begin_inset Formula 
-\[
-v_{shock,S_{w}}=\frac{f_{w}\left(S_{w}^{*}\right)-f_{w}\left(S_{w,0}\right)}{S_{w}^{*}-S_{w,0}}
-\]
+\begin{equation}
+v_{shock,c_{w}}=\left(\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\right)_{S_{w2}^{*}}=\frac{f_{w}\left(S_{w2}^{*}\right)}{S_{w2}^{*}}.\label{eq:shock-BL-tracer}
+\end{equation}
 
 \end_inset
 
+In the graphical representation of Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:shock-BL"
+plural "false"
+caps "false"
+noprefix "false"
 
+\end_inset
+
+) and Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:shock-BL-tracer"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+) are the tangent lines to the fractional flow curves from the point 
+\begin_inset Formula $\left(S_{w,0},f_{w}\left(S_{w,0}\right)\right)$
+\end_inset
+
+ and 
+\begin_inset Formula $\left(0,0\right)$
+\end_inset
+
+, respectively.
 \end_layout
 
 \begin_layout Section
@@ -598,6 +644,35 @@ Looking at the above equation, one can see that even though the concentration
 \end_inset
 
  at the injection concentration is important and affects the solution.
+\end_layout
+
+\begin_layout Section
+Analytical solution procedure
+\end_layout
+
+\begin_layout Standard
+I follow the graphical solution procedure that is suggested by Pope 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "pope1980application"
+literal "false"
+
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Section
+Numerical solution procedure
+\end_layout
+
+\begin_layout Standard
+For the numerical solution, we use a fully implicit finite volume solver
+ implemented in Julia programming language.
+ Second order method is used for the discretization of the diffusion terms
+ (i.e., pressure equation), and upwind method (first order) is used for the
+ advection terms.
 \end_layout
 
 \begin_layout Standard
