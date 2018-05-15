@@ -549,7 +549,7 @@ The shock velocities are calculated by a mass balance at the shock front
  (following Lake):
 \begin_inset Formula 
 \begin{equation}
-v_{shock,S_{w}}=\left(\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\right)_{S_{w}^{*}}=\frac{f_{w}\left(S_{w}^{*}\right)-f_{w}\left(S_{w,0}\right)}{S_{w}^{*}-S_{w,0}},\label{eq:shock-BL}
+V_{shock,S_{w}}=\left(\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\right)_{S_{w}^{*}}=\frac{f_{w}\left(S_{w}^{*}\right)-f_{w}\left(S_{w,0}\right)}{S_{w}^{*}-S_{w,0}},\label{eq:shock-BL}
 \end{equation}
 
 \end_inset
@@ -557,12 +557,12 @@ v_{shock,S_{w}}=\left(\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\right)_{S_{w}^{*}}
 
 \begin_inset Formula 
 \begin{equation}
-v_{shock,c_{w}}=\left(\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\right)_{S_{w2}^{*}}=\frac{f_{w}\left(S_{w2}^{*}\right)}{S_{w2}^{*}}.\label{eq:shock-BL-tracer}
+V_{shock,c_{w}}=\left(\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\right)_{S_{w2}^{*}}=\frac{f_{w}\left(S_{w2}^{*}\right)}{S_{w2}^{*}}.\label{eq:shock-BL-tracer}
 \end{equation}
 
 \end_inset
 
-In the graphical representation of Eq.
+In the graphical representation, Eq.
  (
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -593,6 +593,51 @@ noprefix "false"
 \end_inset
 
 , respectively.
+ The graphical solution is shown in Fig.
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "fig:Graphical-solution-BL"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+\begin_inset CommandInset label
+LatexCommand label
+name "fig:Graphical-solution-BL"
+
+\end_inset
+
+Graphical solution of the water flooding (with water-soluble tracer)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section

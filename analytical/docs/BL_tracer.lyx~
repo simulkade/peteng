@@ -549,7 +549,7 @@ The shock velocities are calculated by a mass balance at the shock front
  (following Lake):
 \begin_inset Formula 
 \begin{equation}
-v_{shock,S_{w}}=\left(\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\right)_{S_{w}^{*}}=\frac{f_{w}\left(S_{w}^{*}\right)-f_{w}\left(S_{w,0}\right)}{S_{w}^{*}-S_{w,0}},\label{eq:shock-BL}
+V_{shock,S_{w}}=\left(\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\right)_{S_{w}^{*}}=\frac{f_{w}\left(S_{w}^{*}\right)-f_{w}\left(S_{w,0}\right)}{S_{w}^{*}-S_{w,0}},\label{eq:shock-BL}
 \end{equation}
 
 \end_inset
@@ -557,14 +557,34 @@ v_{shock,S_{w}}=\left(\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\right)_{S_{w}^{*}}
 
 \begin_inset Formula 
 \begin{equation}
-v_{shock,c_{w}}=\left(\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\right)_{S_{w2}^{*}}=\frac{f_{w}\left(S_{w2}^{*}\right)}{S_{w2}^{*}}.\label{eq:shock-BL-tracer}
+V_{shock,c_{w}}=\left(\frac{\textrm{d}f_{w}}{\textrm{d}S_{w}}\right)_{S_{w2}^{*}}=\frac{f_{w}\left(S_{w2}^{*}\right)}{S_{w2}^{*}}.\label{eq:shock-BL-tracer}
 \end{equation}
 
 \end_inset
 
-In the graphical representation of Eq.
- () and Eq.
- () are the tangent lines to the fractional flow curves from the point 
+In the graphical representation, Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:shock-BL"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+) and Eq.
+ (
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:shock-BL-tracer"
+plural "false"
+caps "false"
+noprefix "false"
+
+\end_inset
+
+) are the tangent lines to the fractional flow curves from the point 
 \begin_inset Formula $\left(S_{w,0},f_{w}\left(S_{w,0}\right)\right)$
 \end_inset
 
@@ -573,6 +593,39 @@ In the graphical representation of Eq.
 \end_inset
 
 , respectively.
+ The graphical solution is shown in Fig.
+ ***.
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Graphical solution of the water flooding (with water-soluble tracer)
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
