@@ -720,6 +720,38 @@ For the numerical solution, we use a fully implicit finite volume solver
  advection terms.
 \end_layout
 
+\begin_layout Subsection
+Discretization
+\end_layout
+
+\begin_layout Standard
+The system of equation is first linearized with respect to the primary variables
+ 
+\begin_inset Formula $S_{w}$
+\end_inset
+
+ and 
+\begin_inset Formula $c_{w}$
+\end_inset
+
+, as follows:
+\begin_inset Formula 
+\[
+\frac{\partial c_{w}S_{w}}{\partial t}=S_{w0}\frac{\partial c_{w}}{\partial t}+c_{w0}\frac{\partial S_{w}}{\partial t}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\]
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Standard
 \begin_inset CommandInset bibtex
 LatexCommand bibtex
