@@ -691,6 +691,44 @@ Looking at the above equation, one can see that even though the concentration
  at the injection concentration is important and affects the solution.
 \end_layout
 
+\begin_layout Subsection
+Relative permeability
+\end_layout
+
+\begin_layout Standard
+The relative permeability can be defined as a function of the total salt
+ concentration or the concentration of the adsorbed ions (on the surface
+ or in the liquid phase).
+ Here, to be able to compare the numerical results with the analytic solutions,
+ we define the relative permeability as a function of the total or a single
+ ionic concentration in the liquid phase:
+\begin_inset Formula 
+\[
+k_{r\alpha}=\Psi k_{r\alpha}^{FW}+\left(1-\Psi\right)k_{r\alpha}^{MS},
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula 
+\[
+\Psi=\frac{c_{w}-c_{w}^{FW}}{c_{LS}^{MS}-c_{w}^{FW}}.
+\]
+
+\end_inset
+
+In the above equations, the superscript 
+\begin_inset Formula $FW$
+\end_inset
+
+ and 
+\begin_inset Formula $MS$
+\end_inset
+
+ denote the formation water and the modified salinity, respectively.
+ 
+\end_layout
+
 \begin_layout Section
 Analytical solution procedure
 \end_layout
@@ -718,6 +756,38 @@ For the numerical solution, we use a fully implicit finite volume solver
  Second order method is used for the discretization of the diffusion terms
  (i.e., pressure equation), and upwind method (first order) is used for the
  advection terms.
+\end_layout
+
+\begin_layout Subsection
+Discretization
+\end_layout
+
+\begin_layout Standard
+The system of equation is first linearized with respect to the primary variables
+ 
+\begin_inset Formula $S_{w}$
+\end_inset
+
+ and 
+\begin_inset Formula $c_{w}$
+\end_inset
+
+, as follows:
+\begin_inset Formula 
+\[
+\frac{\partial c_{w}S_{w}}{\partial t}=S_{w0}\frac{\partial c_{w}}{\partial t}+c_{w0}\frac{\partial S_{w}}{\partial t}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\]
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard

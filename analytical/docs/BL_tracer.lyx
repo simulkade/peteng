@@ -691,6 +691,44 @@ Looking at the above equation, one can see that even though the concentration
  at the injection concentration is important and affects the solution.
 \end_layout
 
+\begin_layout Subsection
+Relative permeability
+\end_layout
+
+\begin_layout Standard
+The relative permeability can be defined as a function of the total salt
+ concentration or the concentration of the adsorbed ions (on the surface
+ or in the liquid phase).
+ Here, to be able to compare the numerical results with the analytic solutions,
+ we define the relative permeability as a function of the total or a single
+ ionic concentration in the liquid phase:
+\begin_inset Formula 
+\[
+k_{r\alpha}=\Psi k_{r\alpha}^{FW}+\left(1-\Psi\right)k_{r\alpha}^{MS},
+\]
+
+\end_inset
+
+where 
+\begin_inset Formula 
+\[
+\Psi=\frac{c_{w}-c_{w}^{FW}}{c_{w}^{MS}-c_{w}^{FW}}.
+\]
+
+\end_inset
+
+In the above equations, the superscript 
+\begin_inset Formula $FW$
+\end_inset
+
+ and 
+\begin_inset Formula $MS$
+\end_inset
+
+ denote the formation water and the modified salinity, respectively.
+ 
+\end_layout
+
 \begin_layout Section
 Analytical solution procedure
 \end_layout
