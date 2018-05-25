@@ -763,8 +763,8 @@ Discretization
 \end_layout
 
 \begin_layout Standard
-The system of equation is first linearized with respect to the primary variables
- 
+The system of equations is first linearized with respect to the primary
+ variables 
 \begin_inset Formula $S_{w}$
 \end_inset
 
@@ -775,7 +775,16 @@ The system of equation is first linearized with respect to the primary variables
 , as follows:
 \begin_inset Formula 
 \[
-\frac{\partial c_{w}S_{w}}{\partial t}=S_{w0}\frac{\partial c_{w}}{\partial t}+c_{w0}\frac{\partial S_{w}}{\partial t}
+\frac{\partial c_{w}S_{w}}{\partial t}=S_{w0}\frac{\partial c_{w}}{\partial t}+c_{w0}\frac{\partial S_{w}}{\partial t}.
+\]
+
+\end_inset
+
+The relative permeability terms are a functions of saturation and concentration.
+ These terms are linearized by
+\begin_inset Formula 
+\[
+k_{r\alpha}=k_{r\alpha}\left(S_{w0},c_{w0}\right)+\left(\frac{\partial k_{r\alpha}}{\partial S_{w}}\right)_{S_{w0},c_{w0}}\left(S_{w}-S_{w0}\right)+\left(\frac{\partial k_{r\alpha}}{\partial c_{w}}\right)_{S_{w0},c_{w0}}\left(c_{w}-c_{w0}\right),
 \]
 
 \end_inset
@@ -783,6 +792,15 @@ The system of equation is first linearized with respect to the primary variables
 
 \begin_inset Formula 
 \[
+\left(\frac{\partial k_{r\alpha}}{\partial S_{w}}\right)_{S_{w0},c_{w0}}=\Psi\left(c_{w0}\right)\frac{\textrm{d}k_{r\alpha}^{FW}}{\textrm{d}S_{w}}+\left(1-\Psi\left(c_{w0}\right)\right)\frac{\textrm{d}k_{r\alpha}^{MS}}{\textrm{d}S_{w}},
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\left(\frac{\partial k_{r\alpha}}{\partial c_{w}}\right)_{S_{w0},c_{w0}}=\left(\frac{\textrm{d}\Psi}{\textrm{d}c_{w}}\right)_{c_{w0}}\left(k_{r\alpha}^{FW}-k_{r\alpha}^{MS}\right),
 \]
 
 \end_inset
