@@ -15,8 +15,7 @@
                 "no": 3.95249,
                 "nw": 3.43117,
                 "swc": 0.201979,
-                "sor": 0.177479,
-                "sor_min": 0.03
+                "sor": 0.177479
             },
             "injection":{
                 "type": "Corey",
@@ -25,13 +24,12 @@
                 "no": 3.95249,
                 "nw": 3.43117,
                 "swc": 0.201979,
-                "sor": 0.177479,
-                "sor_min": 0.03
+                "sor": 0.177479
           }
         }
     },
     "fluids":{
-        "formation water":{
+        "formation_water":{
             "type": "constant",
             "density": 991.21,
             "viscosity": 0.00040706,
@@ -55,6 +53,23 @@
             "AN(mg KOH/g)": 0.55,
             "BN(mg KOH/g)": 0.13,
             "asphaltene(wt%)": 0.0
+        },
+        "injection_water":{
+            "type": "constant",
+            "density": 991.21,
+            "viscosity": 0.00040706,
+            "salinity(mol/L)":{
+                "Na+": 0.45,
+                "K+": 0.01,
+                "Mg+2": 0.045,
+                "Ca+2": 0.013,
+                "Cl-": 0.528,
+                "HCO3-": 0.002,
+                "SO4-2": 0.024,
+                "ionicStrength": 0.657,
+                "TDS(g/L)": 33.4,
+                "pH":8.4
+            }
         }
     },
     "initial_conditions":{
