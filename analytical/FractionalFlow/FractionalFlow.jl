@@ -1,6 +1,6 @@
 module FractionalFlow
 
-using Roots, Dierckx, PyPlot, JFVM, ProgressMeter
+using Roots, Dierckx, PyPlot, JFVM, ProgressMeter, JSON
 include("CoreyFunctions.jl")
 include("water_flood.jl")
 include("low_sal_flood.jl")
@@ -10,7 +10,9 @@ include("water_flood_fvm.jl")
 include("water_flood_fvm_upwind.jl")
 include("fractional_flow_cases.jl")
 include("HTMLElements.jl")
-CF = CoreyFunctions
+include("fractional_flow_input.jl")
+
+CF = CoreyFunctions # a shorter name
 
 # types:
 struct CoreyRelativePermeability
@@ -34,6 +36,8 @@ struct CoreProperties
     diameter::Real
     porosity::Real
     permeability::Real
+    surface_area::Real
+    matrix_density::Real
 end
 
 """
@@ -252,8 +256,8 @@ function core_flooding(;u_inj=1.15e-5, pv_inject=5.0, p_back=1e5, sw_init=0.2, s
     return CoreFlooding(u_inj, pv_inject, p_back, swc, sw_inj)
 end
 
-function core_properties(;L=0.15, D=0.03, φ=0.3, k=1e-12)
-    return CoreProperties(L, D, φ, k)
+function core_properties(;L=0.15, D=0.03, φ=0.3, k=1e-12, a=2000, ρ=2700)
+    return CoreProperties(L, D, φ, k, a, ρ)
 end
 
 function rel_perm_functions(rel_perm::CoreyRelativePermeability)
