@@ -15,6 +15,15 @@ include("fractional_flow_input.jl")
 CF = CoreyFunctions # a shorter name
 
 # types:
+"""
+Core relative permeability parameters
+    krw0::Real
+    kro0::Real
+    swc::Real
+    sor::Real
+    nw::Real
+    no::Real
+"""
 struct CoreyRelativePermeability
     krw0::Real
     kro0::Real
@@ -39,6 +48,37 @@ struct CoreProperties
     surface_area::Real
     matrix_density::Real
 end
+
+"""
+species concentration
+    species::AbstractString
+    molality::Real
+"""
+struct SpeciesConcentration
+    species::AbstractString
+    concentration::Real
+end
+
+"""
+Defines a brine solution, phreeqc style
+    name::AbstractString
+    number::Integer
+    temperature::Real
+    pressure::Real
+    unit::AbstractString
+    salinity::Array{SpeciesConcentration, 1}
+    pH::Real
+"""
+struct Brine
+    name::AbstractString
+    number::Integer
+    temperature::Real
+    pressure::Real
+    unit::AbstractString
+    salinity::Array{SpeciesConcentration, 1}
+    pH::Real
+end
+
 
 """
 A structure for storing the core flooding experimental conditions

@@ -42,6 +42,7 @@ function read_frac_flow_input(input_file::AbstractString)
     for i in 1:2
         fluid = json_file["fluids"]
         if fluid["type"]=="constant"
+            # extract the density, viscosity, and salinity data
             @eval $(fl[i])
 
 
