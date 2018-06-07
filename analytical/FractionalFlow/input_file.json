@@ -33,18 +33,20 @@
             "type": "constant",
             "density": 991.21,
             "viscosity": 0.00040706,
-            "salinity(mol/L)":{
+            "temperature": 300.0,
+            "unit": "mol/L",
+            "salinity":{
                 "Na+": 0.333,
                 "K+": 0.01,
                 "Mg+2": 0.045,
                 "Ca+2": 0.052,
                 "Cl-": 0.486,
                 "HCO3-": 0.002,
-                "SO4-2": 0.024,
-                "ionicStrength": 0.657,
-                "TDS(g/L)": 30.9,
-                "pH":8.4
-            }
+                "SO4-2": 0.024
+            },
+            "ionicStrength": 0.657,
+            "TDS(g/L)": 30.9,
+            "pH":8.4
         },
         "oil":{
             "type": "constant",

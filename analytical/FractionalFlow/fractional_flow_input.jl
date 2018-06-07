@@ -37,15 +37,28 @@ function read_frac_flow_input(input_file::AbstractString)
     end
 
     # fluids, injection fluids, formation fluids
-    fl = [:fluid_form, :fluid_inj]
-    kw = ["formation_water", "injection_water"]
-    for i in 1:2
-        fluid = json_file["fluids"]
-        if fluid["type"]=="constant"
-            # extract the density, viscosity, and salinity data
-            @eval $(fl[i])
+    
+    
 
+end
 
-        end
-
+function read_brine(brine::Dict{String, Any}, brine_name::AbstractString="brine", 
+    brine_number::Integer=1)
+    
+    brine_sal = Array(Brine, length(brine["salinity"]))
+    i = 0
+    for k in keys(brine["salinity"])
+        i+=1
+        brine_sal[i].species = k
+        brine_sal[i].concentration = brine["salinity"][k]
+    end
+    return Brine(brine_name, brine_number, 
+        get(brine, "temperature", 300.0),
+        get(brine, "pressure", 1.01e5),
+        get(brine, "unit", "mol/kgw"),
+        brine_sal,
+        get(brine, "pH", 7.0),
+        get(brine, "density", 1000.0),
+        get(brine, viscosity, 0.001)
+    )
 end

@@ -77,6 +77,16 @@ struct Brine
     unit::AbstractString
     salinity::Array{SpeciesConcentration, 1}
     pH::Real
+    density::Real
+    viscosity:::Real
+end
+
+struct Oil
+    density::Real
+    viscosity::Real
+    acid_number::Real
+    base_number::Real
+    asphaltene::Real
 end
 
 
