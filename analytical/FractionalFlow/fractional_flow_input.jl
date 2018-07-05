@@ -34,6 +34,7 @@ function read_frac_flow_input(input_file::AbstractString)
             sor = rel_perm["sor"]
             @eval $(rp[i]) = CoreyRelativePermeability(krw0, kro0, swc, sor, nw, no)
         # elseif [other rel perm types for the future]
+        end
     end
 
     # fluids, injection fluids, formation fluids
