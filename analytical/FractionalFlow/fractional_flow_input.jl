@@ -60,6 +60,6 @@ function read_brine(brine::Dict{String, Any}, brine_name::AbstractString="brine"
         brine_sal,
         get(brine, "pH", 7.0),
         get(brine, "density", 1000.0),
-        get(brine, viscosity, 0.001)
+        get(brine, "viscosity", 0.001)
     )
 end

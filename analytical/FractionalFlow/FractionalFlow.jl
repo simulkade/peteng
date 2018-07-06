@@ -78,7 +78,7 @@ struct Brine
     salinity::Array{SpeciesConcentration, 1}
     pH::Real
     density::Real
-    viscosity:::Real
+    viscosity::Real
 end
 
 struct Oil
