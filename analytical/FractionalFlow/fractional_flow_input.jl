@@ -40,7 +40,7 @@ function read_frac_flow_input(input_file::AbstractString)
     # fluids, injection fluids, formation fluids
     
     
-
+    return core_props, fluids, rel_perms, core_flood
 end
 
 function read_brine(brine::Dict{String, Any}, brine_name::AbstractString="brine", 

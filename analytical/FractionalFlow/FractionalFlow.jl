@@ -137,6 +137,8 @@ struct FracFlowResults
     recovery_time::Array{Real, 2}
     saturation_profile_xt::Array{Real, 2}
     tracer_profile_xt::Array{Real, 2}
+    dp_pv::Array{Real, 2}
+    dp_time::Array{Real, 2}
 end
 
 # functions

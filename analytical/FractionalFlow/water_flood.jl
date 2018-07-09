@@ -44,6 +44,19 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     xt_tracer = [0.0, xt_tracer_shock, xt_tracer_shock+eps(), xt_prf[end]]
     c_tracer = [1.0, 1.0, 0.0, 0.0]
 
+    # calculate the pressure drop
+    sw_int = Spline1D(xt_prf, sw_prf, k=1)
+    t_inj=pv_inj*phi*L/ut
+    t = collect(linspace(0.0,t_inj, 200)) # [s] time
+    p_inj = zeros(length(t))
+    R_oil= zeros(length(t))
+    p_inj[1]=trapz(x, ut./(k*(kro_new.(sw0*ones(size(x)))/muo+krw_new.(sw0*ones(size(x)))/muw)))
+    for i in 2:length(t)
+        xt = x/t[i]
+        p_inj[i] = trapz(x, ut./(k*(kro_new.(sw_int(xt))/muo+krw_new.(sw_int(xt))/muw)))
+        R_oil[i]=1.0-trapz(x/L, 1.0-sw_int(xt))/(1-sw0)
+    end
+
     return FracFlowResults([fw], [Line([sw_init, fw(sw_init)], [sw_shock, fw(sw_shock)])],
                             [pv_R R], [pv_R*pv_to_t R], [xt_prf sw_prf], [xt_tracer c_tracer])
     # return pv_R, R, xt_prf, sw_prf # for the time being to test the code
