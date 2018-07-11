@@ -312,6 +312,11 @@ function core_properties(;L=0.15, D=0.03, φ=0.3, k=1e-12, a=2000, ρ=2700)
     return CoreProperties(L, D, φ, k, a, ρ)
 end
 
+"""
+rel_perm_functions(rel_perm::CoreyRelativePermeability)
+returns:
+     krw, kro, dkrwdsw, dkrodsw
+"""
 function rel_perm_functions(rel_perm::CoreyRelativePermeability)
     kro0 = rel_perm.kro0
     krw0 = rel_perm.krw0

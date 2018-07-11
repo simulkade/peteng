@@ -45,12 +45,15 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     c_tracer = [1.0, 1.0, 0.0, 0.0]
 
     # calculate the pressure drop
+    k = core_props.permeability
+    krw, kro, dkrw, dkro = rel_perm_functions(rel_perms)
+
     sw_int = Spline1D(xt_prf, sw_prf, k=1)
-    t_inj=pv_inj*phi*L/ut
+    t_inj=pv_inj*pv_to_t
     t = collect(linspace(0.0,t_inj, 200)) # [s] time
     p_inj = zeros(length(t))
     R_oil= zeros(length(t))
-    p_inj[1]=trapz(x, ut./(k*(kro_new.(sw0*ones(size(x)))/muo+krw_new.(sw0*ones(size(x)))/muw)))
+    p_inj[1]=trapz(x, ut./(k*(kro.(sw0*ones(size(x)))/muo+krw_new.(sw0*ones(size(x)))/muw)))
     for i in 2:length(t)
         xt = x/t[i]
         p_inj[i] = trapz(x, ut./(k*(kro_new.(sw_int(xt))/muo+krw_new.(sw_int(xt))/muw)))
