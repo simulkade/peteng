@@ -4,7 +4,7 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     sw_shock = tangent_line_saturation(rel_perms, fluids, (sw_init, fw(sw_init)))
     println("sw_shock = $sw_shock")
     t_D_BT = 1/dfw(sw_shock) # breakthrough (BT) time [#PV]
-    println("breakthrough time = $t_D_BT")
+    # println("breakthrough time = $t_D_BT")
 
     # tracer
     sw_tracer = tangent_line_saturation(rel_perms, fluids, (0.0, 0.0))
@@ -18,8 +18,8 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     push!(pv_R, t_D_BT) # BT time
     # after breakthrough
     pv_inj = max(core_flood.injected_pore_volume, 2.0) # at least inject 2 pv
-    f_sw = sw -> (pv_inj-1/dfw(sw)) # find the outlet saturation at the end of injection
-    sw_max = fzero(f_sw, sw_shock)
+    sw_max = outlet_saturation(pv_inj, sw_shock, dfw, rel_perms)
+    # println(sw_max)
     sw_tmp = linspace(sw_shock, sw_max, 100)
     t_D_tmp = 1./dfw.(sw_tmp)
 
@@ -47,20 +47,38 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     # calculate the pressure drop
     k = core_props.permeability
     krw, kro, dkrw, dkro = rel_perm_functions(rel_perms)
-    muo, muw = fluids.
-    sw_int = Spline1D(xt_prf, sw_prf, k=1)
+    muo, muw = fluids.oil_viscosity, fluids.water_viscosity
+    
+    xt = copy(xt_prf)
+    sw = copy(sw_prf)
+    i=1
+    while(true)
+        if i==length(xt)
+            break
+        elseif xt[i]>=xt[i+1]
+            deleteat!(xt, i+1)
+            deleteat!(sw, i+1)
+        else
+            i+=1
+        end
+    end
+    
+    
+    x = collect(linspace(0,L,1000))
+    # println(xt)
+    sw_int = Spline1D(ut/phi.*xt, sw, k=1)
     t_inj=pv_inj*pv_to_t
     t = collect(linspace(0.0,t_inj, 200)) # [s] time
     p_inj = zeros(length(t))
-    p_inj[1]=ut./(k*(kro.(sw_init*ones(size(x)))/mu_+krw_new.(sw0*ones(size(x)))/muw))
+    p_inj[1]=L*ut./(k*(kro.(sw_init)/muo+krw.(sw_init)/muw))
     for i in 2:length(t)
-        xt = x/t[i]
-        p_inj[i] = trapz(x, ut./(k*(kro_new.(sw_int(xt))/muo+krw_new.(sw_int(xt))/muw)))
-        R_oil[i]=1.0-trapz(x/L, 1.0-sw_int(xt))/(1-sw0)
+        xt_real = x/t[i]
+        p_inj[i] = trapz(x, ut./(k*(kro.(sw_int(xt_real))/muo+krw.(sw_int(xt_real))/muw)))
     end
 
     return FracFlowResults([fw], [Line([sw_init, fw(sw_init)], [sw_shock, fw(sw_shock)])],
-                            [pv_R R], [pv_R*pv_to_t R], [xt_prf sw_prf], [xt_tracer c_tracer])
+                            [pv_R R], [pv_R*pv_to_t R], [xt_prf sw_prf], [xt_tracer c_tracer],
+                            [t/pv_to_t p_inj], [t p_inj])
     # return pv_R, R, xt_prf, sw_prf # for the time being to test the code
 
 end

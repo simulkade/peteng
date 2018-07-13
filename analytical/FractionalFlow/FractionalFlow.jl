@@ -269,6 +269,10 @@ function visualize(wf_res::FracFlowResults)
     plot(wf_res.recovery_pv[:,1], wf_res.recovery_pv[:,2])
     xlabel("Pore volume [-]")
     ylabel("Recovery factor")
+    figure()
+    plot(wf_res.dp_pv[:,1], wf_res.dp_pv[:,2])
+    xlabel("Pore volume [-]")
+    ylabel("Pressure drop [Pa]")
     # plot the recovery factors (time)
     # figure()
     # plot(wf_res.recovery_time[:,1], wf_res.recovery_time[:,2])
@@ -347,28 +351,43 @@ function fractional_flow_function(rel_perms, fluids)
 end
 
 function tangent_line_saturation(rel_perms, fluids, sw_fw_point)
+    eps1 = 1e-3 # distance from the end point saturations
     swc = rel_perms.swc
     sor = rel_perms.sor
     sw0 = sw_fw_point[1]
     fw0 = sw_fw_point[2]
     fw, dfw = fractional_flow_function(rel_perms, fluids)
 
-    f_shock = sw -> (dfw(sw)-(fw(sw)-fw0)/(sw-sw0))
-    sw_tmp = collect(linspace(swc+eps(), 1-sor-eps(), 1000))
+    f_shock = sw -> (1-((fw(sw)-fw0)/(sw-sw0))/dfw(sw))
+    sw_tmp = collect(linspace(swc+eps1, 1-sor-eps1, 1000))
     # ind_min = indmin(abs.(f_shock.(sw_tmp)))
     ind_max = indmax(dfw.(sw_tmp))
     sw_max = sw_tmp[ind_max]
-    ind_min = indmin(abs.(f_shock.(sw_tmp[ind_max:end])))
-    sw_shock = sw_tmp[ind_min]
+    sw_tmp = sw_tmp[ind_max:end]
+    ind_min = indmin(abs.(f_shock.(sw_tmp)))
+    # ind_shock = indmax(abs.((fw.(sw_tmp[ind_max:end])-fw0)./(sw_tmp[ind_max:end]-sw0)))
+    sw_shock_est = sw_tmp[ind_min]
+    println(sw_shock_est)
+    sw_shock = 0.0
     try
-        if f_shock(sw_max)*f_shock(1-sor-eps())>0
-            sw_shock = fzero(f_shock, sw_shock) #  ftol = 1e-10, xtol = 1e-7)
+        if f_shock(sw_max)*f_shock(1-sor-eps1)>0
+            sw_shock = fzero(f_shock, sw_shock_est) #  ftol = 1e-10, xtol = 1e-7)
+            if (abs(f_shock(sw_shock))>abs(f_shock(sw_shock_est))) || (sw_shock<sw_max) || (sw_shock>1-sor-eps1)
+                sw_shock = sw_shock_est
+            end
         else
             sw_shock = fzero(f_shock, [sw_max,1-sor-eps()])
+            if abs(f_shock(sw_shock))>abs(f_shock(sw_shock_est))
+                sw_shock = sw_shock_est
+            end
         end
     catch()
+        sw_shock = sw_shock_est
         info("shock front saturation is estimated: $sw_shock, error is $(f_shock(sw_shock))")
     end
+    println(abs(f_shock(sw_shock_est)))
+    println(abs(f_shock(sw_shock)))
+    return sw_shock
 end
 
 function cross_point_saturation(fw, rel_perms, point1, point2; sw_left=0, sw_right=0)
@@ -398,5 +417,45 @@ function cross_point_saturation(fw, rel_perms, point1, point2; sw_left=0, sw_rig
     return sw_cross
 end
 
+"""
+fint the saturation at the outlet of the core at the end of injection
+"""
+function outlet_saturation(pv_inj, sw_shock, dfw, rel_perms)
+    eps1 = 1e-4
+    sor = rel_perms.sor
+    sw_tmp = collect(linspace(sw_shock+eps(), 1-sor-eps1, 1000))
+    f = sw -> (pv_inj-1/dfw(sw)) # find the outlet saturation at the end of injection
+    f_tmp = f.(sw_tmp)
+    sw_left = sw_shock+eps()
+    sw_right = 1-sor-eps1
+    # println(f_tmp)
+    sw_max = sw_tmp[find(f_tmp.<0.0)[1]]
+    try
+        if f(sw_left)*f(sw_right)>0
+            sw_max = fzero(f_sw, [sw_left, sw_right])
+        else
+            sw_max = fzero(f, [sw_left, sw_right])
+        end
+    catch
+        sw_max = sw_tmp[indmin(abs.(f_tmp))]
+        info("Outlet saturation is estimated: $sw_max, error is $(f(sw_max))")
+    end
+    return sw_max
+end
+
+function trapz(x,y)
+    # copied from https://github.com/hwborchers/NumericalMath.jl/blob/master/src/integrate.jl
+        n=length(x)
+        if (length(y) != n)
+            error("Vectors 'x', 'y' must be of same length")
+        end
+        r=0
+        for i in 2:n
+            r+=(x[i] - x[i-1])*(y[i] + y[i-1])
+        end
+        return r/2.0
+    end
 
 end # module
+
+
