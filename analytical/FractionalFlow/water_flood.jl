@@ -2,7 +2,7 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     fw, dfw = fractional_flow_function(rel_perms, fluids)
     sw_init = core_flood.initial_water_saturation
     sw_shock = tangent_line_saturation(rel_perms, fluids, (sw_init, fw(sw_init)))
-    println("sw_shock = $sw_shock")
+    # println("sw_shock = $sw_shock")
     t_D_BT = 1/dfw(sw_shock) # breakthrough (BT) time [#PV]
     # println("breakthrough time = $t_D_BT")
 
@@ -25,8 +25,8 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
 
     s_av_tmp = sw_tmp-(fw.(sw_tmp)-1).*t_D_tmp
     R_tmp = (s_av_tmp-sw_init)/(1-sw_init)
-    append!(R, R_tmp)
-    append!(pv_R, t_D_tmp)
+    append!(R, R_tmp[2:end])
+    append!(pv_R, t_D_tmp[2:end])
 
     # saturation profile
     sor = rel_perms.sor
@@ -35,11 +35,11 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     ut = core_flood.injection_velocity
     L = core_props.length
     pv_to_t = phi*L/ut
-    s1 = collect(linspace(min(sw_inj, 1-sor-eps()), sw_shock-eps(), 100))
+    s1 = collect(linspace(min(sw_inj, 1-sor-eps()), sw_shock, 100))
     xt_s1 = dfw.(s1)
     xt_shock = dfw(sw_shock)
-    xt_prf=[xt_s1; xt_shock; xt_shock+eps(); 2*xt_shock]
-    sw_prf=[s1; sw_shock; sw_init; sw_init]
+    xt_prf=[xt_s1; xt_shock+eps(); 2*xt_shock]
+    sw_prf=[s1; sw_init; sw_init]
 
     xt_tracer = [0.0, xt_tracer_shock, xt_tracer_shock+eps(), xt_prf[end]]
     c_tracer = [1.0, 1.0, 0.0, 0.0]
@@ -64,9 +64,9 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     end
     
     
-    x = collect(linspace(0,L,1000))
+    x = collect(linspace(0,L,100))
     # println(xt)
-    sw_int = Spline1D(ut/phi.*xt, sw, k=1)
+    sw_int = Spline1D(ut/phi.*xt, sw, k=1, bc="nearest")
     t_inj=pv_inj*pv_to_t
     t = collect(linspace(0.0,t_inj, 200)) # [s] time
     p_inj = zeros(length(t))

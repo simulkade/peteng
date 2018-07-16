@@ -1,6 +1,8 @@
 module FractionalFlow
 
 using Roots, Dierckx, PyPlot, JFVM, ProgressMeter, JSON
+import Optim
+# import GR
 include("CoreyFunctions.jl")
 include("water_flood.jl")
 include("low_sal_flood.jl")
@@ -8,6 +10,7 @@ include("water_solvent_flood.jl")
 include("tertiary_flood.jl")
 include("water_flood_fvm.jl")
 include("water_flood_fvm_upwind.jl")
+include("water_flood_upwind_BL.jl")
 include("fractional_flow_cases.jl")
 include("HTMLElements.jl")
 include("fractional_flow_input.jl")
@@ -351,7 +354,7 @@ function fractional_flow_function(rel_perms, fluids)
 end
 
 function tangent_line_saturation(rel_perms, fluids, sw_fw_point)
-    eps1 = 1e-3 # distance from the end point saturations
+    eps1 = 1e-5 # distance from the end point saturations
     swc = rel_perms.swc
     sor = rel_perms.sor
     sw0 = sw_fw_point[1]
@@ -363,20 +366,31 @@ function tangent_line_saturation(rel_perms, fluids, sw_fw_point)
     # ind_min = indmin(abs.(f_shock.(sw_tmp)))
     ind_max = indmax(dfw.(sw_tmp))
     sw_max = sw_tmp[ind_max]
+    res = Optim.optimize(x->-dfw(x), swc, 1-sor, Optim.GoldenSection())
+    sw_max = res.minimizer
     sw_tmp = sw_tmp[ind_max:end]
+    f_tmp = f_shock.(sw_tmp)
+    # println(f_tmp)
+    sw_right = 1-sor-eps1
+    try
+        sw_right = find(f_tmp.<0.0)[1]
+    catch
+        sw_right = 1-sor-eps1
+        info("difficulty finding the shock front saturation range!")
+    end
     ind_min = indmin(abs.(f_shock.(sw_tmp)))
     # ind_shock = indmax(abs.((fw.(sw_tmp[ind_max:end])-fw0)./(sw_tmp[ind_max:end]-sw0)))
     sw_shock_est = sw_tmp[ind_min]
-    println(sw_shock_est)
+    # println(sw_shock_est)
     sw_shock = 0.0
     try
-        if f_shock(sw_max)*f_shock(1-sor-eps1)>0
+        if f_shock(sw_max)*f_shock(sw_right)>0
             sw_shock = fzero(f_shock, sw_shock_est) #  ftol = 1e-10, xtol = 1e-7)
             if (abs(f_shock(sw_shock))>abs(f_shock(sw_shock_est))) || (sw_shock<sw_max) || (sw_shock>1-sor-eps1)
                 sw_shock = sw_shock_est
             end
         else
-            sw_shock = fzero(f_shock, [sw_max,1-sor-eps()])
+            sw_shock = fzero(f_shock, [sw_max,sw_right])
             if abs(f_shock(sw_shock))>abs(f_shock(sw_shock_est))
                 sw_shock = sw_shock_est
             end
@@ -385,8 +399,8 @@ function tangent_line_saturation(rel_perms, fluids, sw_fw_point)
         sw_shock = sw_shock_est
         info("shock front saturation is estimated: $sw_shock, error is $(f_shock(sw_shock))")
     end
-    println(abs(f_shock(sw_shock_est)))
-    println(abs(f_shock(sw_shock)))
+    # println(abs(f_shock(sw_shock_est)))
+    # println(abs(f_shock(sw_shock)))
     return sw_shock
 end
 
@@ -421,7 +435,7 @@ end
 fint the saturation at the outlet of the core at the end of injection
 """
 function outlet_saturation(pv_inj, sw_shock, dfw, rel_perms)
-    eps1 = 1e-4
+    eps1 = 1e-2
     sor = rel_perms.sor
     sw_tmp = collect(linspace(sw_shock+eps(), 1-sor-eps1, 1000))
     f = sw -> (pv_inj-1/dfw(sw)) # find the outlet saturation at the end of injection
