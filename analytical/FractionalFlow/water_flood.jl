@@ -18,10 +18,10 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     # push!(pv_R, t_D_BT) # BT time
     # after breakthrough
     pv_inj = max(core_flood.injected_pore_volume, 2.0) # at least inject 2 pv
-    sw_max = outlet_saturation(pv_inj, sw_shock, dfw, rel_perms)
+    # sw_max = outlet_saturation(pv_inj, sw_shock, dfw, rel_perms)
     # println(sw_max)
-    sw_tmp = linspace(sw_shock, sw_max, 100)
-    t_D_tmp = 1./dfw.(sw_tmp)
+    # sw_tmp = linspace(sw_shock, sw_max, 100)
+    # t_D_tmp = 1./dfw.(sw_tmp)
 
     # s_av_tmp = sw_tmp-(fw.(sw_tmp)-1).*t_D_tmp
     # R_tmp = (s_av_tmp-sw_init)/(1-sw_init)
