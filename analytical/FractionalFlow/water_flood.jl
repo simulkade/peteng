@@ -11,11 +11,11 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     t_D_tracer = 1/dfw(sw_tracer)
     xt_tracer_shock = dfw(sw_tracer)
     # construct the recovery factor curve versus the # of PV
-    R = zeros(1)
-    pv_R = zeros(1)
+    # R = zeros(1)
+    # pv_R = zeros(1)
     # at breakthrough
-    push!(R, (1-fw(sw_init))*t_D_BT/(1-sw_init)) # recovery at BT
-    push!(pv_R, t_D_BT) # BT time
+    # push!(R, (1-fw(sw_init))*t_D_BT/(1-sw_init)) # recovery at BT
+    # push!(pv_R, t_D_BT) # BT time
     # after breakthrough
     pv_inj = max(core_flood.injected_pore_volume, 2.0) # at least inject 2 pv
     sw_max = outlet_saturation(pv_inj, sw_shock, dfw, rel_perms)
@@ -23,10 +23,10 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     sw_tmp = linspace(sw_shock, sw_max, 100)
     t_D_tmp = 1./dfw.(sw_tmp)
 
-    s_av_tmp = sw_tmp-(fw.(sw_tmp)-1).*t_D_tmp
-    R_tmp = (s_av_tmp-sw_init)/(1-sw_init)
-    append!(R, R_tmp[2:end])
-    append!(pv_R, t_D_tmp[2:end])
+    # s_av_tmp = sw_tmp-(fw.(sw_tmp)-1).*t_D_tmp
+    # R_tmp = (s_av_tmp-sw_init)/(1-sw_init)
+    # append!(R, R_tmp[2:end])
+    # append!(pv_R, t_D_tmp[2:end])
 
     # saturation profile
     sor = rel_perms.sor
@@ -64,20 +64,22 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     end
     
     
-    x = collect(linspace(0,L,100))
+    x = collect(linspace(0,L,200))
     # println(xt)
     sw_int = Spline1D(ut/phi.*xt, sw, k=1, bc="nearest")
     t_inj=pv_inj*pv_to_t
     t = collect(linspace(0.0,t_inj, 200)) # [s] time
     p_inj = zeros(length(t))
+    R_int = zeros(length(t))
     p_inj[1]=L*ut./(k*(kro.(sw_init)/muo+krw.(sw_init)/muw))
     for i in 2:length(t)
         xt_real = x/t[i]
         p_inj[i] = trapz(x, ut./(k*(kro.(sw_int(xt_real))/muo+krw.(sw_int(xt_real))/muw)))
+        R_int[i] = (trapz(x, sw_int(xt_real))/L-sw_init)/(1-sw_init)
     end
 
     return FracFlowResults([fw], [Line([sw_init, fw(sw_init)], [sw_shock, fw(sw_shock)])],
-                            [pv_R R], [pv_R*pv_to_t R], [xt_prf sw_prf], [xt_tracer c_tracer],
+                            [t/pv_to_t R_int], [t R_int], [xt_prf sw_prf], [xt_tracer c_tracer],
                             [t/pv_to_t p_inj], [t p_inj])
     # return pv_R, R, xt_prf, sw_prf # for the time being to test the code
 

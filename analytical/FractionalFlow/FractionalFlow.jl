@@ -443,7 +443,12 @@ function outlet_saturation(pv_inj, sw_shock, dfw, rel_perms)
     sw_left = sw_shock+eps()
     sw_right = 1-sor-eps1
     # println(f_tmp)
-    sw_max = sw_tmp[find(f_tmp.<0.0)[1]]
+    sw_max = 0.0
+    try
+        sw_max = sw_tmp[find(f_tmp.<0.0)[1]]
+    catch
+        sw_max = sw_tmp[indmin(f_tmp)]
+    end
     try
         if f(sw_left)*f(sw_right)>0
             sw_max = fzero(f_sw, [sw_left, sw_right])
