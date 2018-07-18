@@ -17,15 +17,17 @@ function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel
     # construct the fractional flow curves
     fw_ls, dfw_ls = fractional_flow_function(rel_perms_ls, fluids_ls)
     fw_hs, dfw_hs = fractional_flow_function(rel_perms_hs, fluids_hs)
+
     # low sal shock (tangent line from (0,0))
     sw_shock_ls = tangent_line_saturation(rel_perms_ls, fluids_ls, (-eq_const, 0.0))
-    println("low sal sw_shock = $sw_shock_ls")
+    # println("low sal sw_shock = $sw_shock_ls")
     t_D_BT_ls = 1/dfw_ls(sw_shock_ls) # breakthrough (BT) time [#PV]
-    println("low sal breakthrough time = $t_D_BT_ls")
+    # println("low sal breakthrough time = $t_D_BT_ls")
+    
     # High sal shock (cross point between the ls tangent and the hs fw)
     sw_shock_hs = cross_point_saturation(fw_hs, rel_perms_hs, (-eq_const, 0.0), 
         (sw_shock_ls, fw_ls(sw_shock_ls)))
-    println("high sal sw_shock = $sw_shock_hs")
+    # println("high sal sw_shock = $sw_shock_hs")
     sw_init = core_flood.initial_water_saturation
     t_D_BT_hs = (sw_shock_hs-sw_init)/(fw_hs(sw_shock_hs)-fw_hs(sw_init)) # breakthrough (BT) time [#PV]
     println("high sal breakthrough time = $t_D_BT_hs")
@@ -41,6 +43,8 @@ function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel
     xt_tracer_shock = dfw_ls(sw_tracer)
 
     # construct the recovery factor curve versus the # of PV
+    # This is not robust. I decided to change it to a numerical integration of 
+    # the saturation profile
     R = zeros(1)
     pv_R = zeros(1)
     # at breakthrough of the hs brine
@@ -78,6 +82,16 @@ function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel
     sw_prf=[s1; sw_shock_ls; sw_shock_hs; sw_shock_hs; sw_init; sw_init]
     xt_tracer = [0.0, xt_tracer_shock, xt_tracer_shock+eps(), xt_prf[end]]
     c_tracer = [1.0, 1.0, 0.0, 0.0]
+
+    # extract data for calculating the pressure drop
+    k = core_props.permeability
+    krw_ls, kro_ls, dkrw_ls, dkro_ls = rel_perm_functions(rel_perms_ls)
+    muo_ls, muw_ls = fluids_ls.oil_viscosity, fluids_ls.water_viscosity
+    krw_hs, kro_hs, dkrw_hs, dkro_hs = rel_perm_functions(rel_perms_hs)
+    muo_hs, muw_hs = fluids_hs.oil_viscosity, fluids_hs.water_viscosity
+    λ_ls = s -> krw_ls(s)/muw_ls+kro_ls(s)/muo_ls
+    λ_hs = s -> krw_hs(s)/muw_hs+kro_hs(s)/muo_hs
+
     # return pv_R, R, xt_prf, sw_prf # for the time being to test the code
     return FracFlowResults([fw_hs, fw_ls], [Line([-eq_const, 0.0], [sw_shock_ls, fw_ls(sw_shock_ls)]),
                             Line([sw_init, fw_hs(sw_init)], [sw_shock_hs, fw_hs(sw_shock_hs)])],

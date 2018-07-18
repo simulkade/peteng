@@ -97,7 +97,7 @@ function water_flood_numeric(core_props, fluids, rel_perms, core_flood; Nx = 30)
     t_sec=zeros(1)
     t = 0.0
     dt0=dt
-    dsw_alwd= 0.01
+    dsw_alwd= 0.005
     dp_alwd= 100.0 # Pa
     dc_alwd= 0.005
     labdaw=createFaceVariable(m,1.0) # initialize
@@ -114,7 +114,7 @@ function water_flood_numeric(core_props, fluids, rel_perms, core_flood; Nx = 30)
         while ((error_sw>eps_sw))
             loop_count+=1
             if loop_count>10
-            break
+                break
             end
             # calculate parameters
             pgrad = gradientTerm(p)
