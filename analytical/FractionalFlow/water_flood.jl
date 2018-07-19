@@ -65,7 +65,6 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     
     
     x = collect(linspace(0,L,200))
-    # println(xt)
     sw_int = Spline1D(ut/phi.*xt, sw, k=1, bc="nearest")
     t_inj=pv_inj*pv_to_t
     t = collect(linspace(0.0,t_inj, 200)) # [s] time
