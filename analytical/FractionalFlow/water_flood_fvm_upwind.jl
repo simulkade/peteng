@@ -10,10 +10,10 @@ output:
   sw: final saturation profile
 """
 function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_hs,
-  rel_perms_ls, core_flood)
+  rel_perms_ls, core_flood; pv_inj = 0.3)
   c_insitu = 1.0
   c_inj = 0
-  pv_inj = 0.3
+  # pv_inj = 0.3
 
   C_high_sal=1.0
   C_low_sal=0.0

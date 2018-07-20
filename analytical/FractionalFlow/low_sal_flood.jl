@@ -112,8 +112,8 @@ function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel
     sw_int = Spline1D(ut/phi.*xt, sw, k=1, bc="nearest")
     λ_int = Spline1D(ut/phi.*xt, λ_t, k=1, bc="nearest")
     t_inj=pv_inj*pv_to_t
-    t = collect([linspace(0,t_D_BT_hs*pv_to_t, 20); 
-                linspace((t_D_BT_hs+eps())*pv_to_t, t_D_BT_ls*pv_to_t, 20);
+    t = collect([linspace(0,t_D_BT_hs*pv_to_t, 10); 
+                linspace((t_D_BT_hs+eps())*pv_to_t, t_D_BT_ls*pv_to_t, 40);
                 linspace((t_D_BT_ls+eps())*pv_to_t,t_inj, 100)]) # [s] time
     p_inj = zeros(length(t))
     R_int = zeros(length(t))
@@ -123,6 +123,8 @@ function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel
         p_inj[i] = trapz(x, ut./(k*λ_int(xt_real)))
         R_int[i] = (trapz(x, sw_int(xt_real))/L-sw_init)/(1-sw_init)
     end
+
+    R_int[R_int.<0.0] = 0.0
 
     # return pv_R, R, xt_prf, sw_prf # for the time being to test the code
     return FracFlowResults([fw_hs, fw_ls], [Line([-eq_const, 0.0], [sw_shock_ls, fw_ls(sw_shock_ls)]),

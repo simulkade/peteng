@@ -368,7 +368,7 @@ function tangent_line_saturation(rel_perms, fluids, sw_fw_point)
     sw_max = sw_tmp[ind_max]
     res = Optim.optimize(x->-dfw(x), swc, 1-sor, Optim.GoldenSection())
     sw_max = res.minimizer
-    sw_tmp = sw_tmp[ind_max:end]
+    sw_tmp = linspace(sw_max, 1-sor-eps1, 100) # sw_tmp[ind_max:end]
     f_tmp = f_shock.(sw_tmp)
     # println(f_tmp)
     sw_right = 1-sor-eps1
