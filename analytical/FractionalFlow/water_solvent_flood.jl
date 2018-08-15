@@ -65,7 +65,7 @@ function water_soluble_solvent_flood(core_props, fluids_ls, fluids_hs, rel_perms
     c_tracer = [1.0, 1.0, 0.0, 0.0]
     # return pv_R, R, xt_prf, sw_prf # for the time being to test the code
     return FracFlowResults([fw_hs, fw_ls], [Line([-eq_const/(1-eq_const), -eq_const/(1-eq_const)],
-                            [sw_shock_ls, fw_ls(sw_shock_ls)]),
+                            [sw_shock_hs, fw_hs(sw_shock_hs)]),
                             Line([sw_init, fw_hs(sw_init)], [sw_shock_hs, fw_hs(sw_shock_hs)])],
                             [pv_R R], [pv_R*pv_to_t R], [xt_prf sw_prf], [xt_tracer c_tracer], 
                             [ones(2) ones(2)], [ones(2) ones(2)])
