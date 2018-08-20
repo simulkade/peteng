@@ -395,7 +395,7 @@ function tangent_line_saturation(rel_perms, fluids, sw_fw_point)
                 sw_shock = sw_shock_est
             end
         end
-    catch()
+    catch
         sw_shock = sw_shock_est
         info("shock front saturation is estimated: $sw_shock, error is $(f_shock(sw_shock))")
     end
@@ -425,7 +425,7 @@ function cross_point_saturation(fw, rel_perms, point1, point2; sw_left=0, sw_rig
         else
             sw_cross = fzero(f, [sw_left, sw_right])
         end
-    catch()
+    catch
         info("Cross point is estimated: $sw_cross, error is $(f(sw_cross))")
     end
     return sw_cross

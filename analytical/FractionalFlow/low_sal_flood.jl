@@ -34,7 +34,9 @@ function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel
 
     # check the slope of the lines:
     if t_D_BT_hs>=t_D_BT_ls
-        info("This function does not work on this problem. Consider calling the single_ion_adsorption_water_flood_single_shock function.")
+        info("This function does not work on this problem. Calling the single_ion_adsorption_water_flood_single_shock function ...")
+        return single_ion_adsorption_water_flood_single_shock(core_props, fluids_ls, fluids_hs, rel_perms_hs,
+                            rel_perms_ls, core_flood, eq_const)
     end
 
     # tracer

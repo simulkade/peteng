@@ -41,7 +41,7 @@ function water_soluble_solvent_flood(core_props, fluids_ls, fluids_hs, rel_perms
     f_sw = sw -> (pv_inj-1/dfw_ls(sw)) # find the outlet saturation at the end of injection
     sw_max = fzero(f_sw, sw_shock_ls)
     sw_tmp = linspace(sw_shock_ls, sw_max, 100)
-    t_D_tmp = 1./dfw_ls.(sw_tmp)
+    t_D_tmp = 1.0./dfw_ls.(sw_tmp)
 
     s_av_tmp = sw_tmp-(fw_ls.(sw_tmp)-1).*t_D_tmp
     R_tmp = (s_av_tmp-sw_init)/(1-sw_init)
