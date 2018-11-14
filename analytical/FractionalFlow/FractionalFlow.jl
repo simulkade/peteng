@@ -147,6 +147,22 @@ end
 # functions
 
 """
+from old julia
+"""
+function linspace(a,b,c)
+    return range(a, stop=b, length=c)
+end
+
+function indmin(a)
+    return argmin(a)
+end
+
+function indmax(a)
+    return argmax(a)
+end
+
+
+"""
 visualize(rel_perm::CoreyRelativePermeability)
 This function visualizes the relative permeability curve that is defined
 by a CoreyRelativePermeability structure
@@ -376,7 +392,7 @@ function tangent_line_saturation(rel_perms, fluids, sw_fw_point)
         sw_right = find(f_tmp.<0.0)[1]
     catch
         sw_right = 1-sor-eps1
-        info("difficulty finding the shock front saturation range!")
+        @info "difficulty finding the shock front saturation range!"
     end
     ind_min = indmin(abs.(f_shock.(sw_tmp)))
     # ind_shock = indmax(abs.((fw.(sw_tmp[ind_max:end])-fw0)./(sw_tmp[ind_max:end]-sw0)))
@@ -397,7 +413,7 @@ function tangent_line_saturation(rel_perms, fluids, sw_fw_point)
         end
     catch
         sw_shock = sw_shock_est
-        info("shock front saturation is estimated: $sw_shock, error is $(f_shock(sw_shock))")
+        @info "shock front saturation is estimated: $sw_shock, error is $(f_shock(sw_shock))"
     end
     # println(abs(f_shock(sw_shock_est)))
     # println(abs(f_shock(sw_shock)))
@@ -426,7 +442,7 @@ function cross_point_saturation(fw, rel_perms, point1, point2; sw_left=0, sw_rig
             sw_cross = fzero(f, [sw_left, sw_right])
         end
     catch
-        info("Cross point is estimated: $sw_cross, error is $(f(sw_cross))")
+        @info "Cross point is estimated: $sw_cross, error is $(f(sw_cross))"
     end
     return sw_cross
 end
@@ -457,7 +473,7 @@ function outlet_saturation(pv_inj, sw_shock, dfw, rel_perms)
         end
     catch
         sw_max = sw_tmp[indmin(abs.(f_tmp))]
-        info("Outlet saturation is estimated: $sw_max, error is $(f(sw_max))")
+        @info "Outlet saturation is estimated: $sw_max, error is $(f(sw_max))"
     end
     return sw_max
 end
@@ -476,5 +492,3 @@ function trapz(x,y)
     end
 
 end # module
-
-

@@ -5,6 +5,7 @@ normalized water saturation
 sws(sw::Real, sor::Real, swc::Real)
 """
 function sws(sw::Real, sor::Real, swc::Real)
+  res=0.0
   if sw>swc && sw<1-sor
     res=(sw-swc)/(1-sor-swc)
   elseif sw>=1-sor
@@ -20,6 +21,7 @@ Oil relative permeability functions for oil-water system
 kro(sw::Real, kro0::Real, sor::Real, swc::Real, no::Real)
 """
 function kro(sw::Real, kro0::Real, sor::Real, swc::Real, no::Real)
+  res = 0.0
   if swc<=sw<=1-sor
     res=kro0*((1-sw-sor)/(1-sor-swc))^no
   elseif 0.0<sw<swc
@@ -37,6 +39,7 @@ derivative of the oil relperm with respect to water saturation
 dkrodsw(sw::Real, kro0::Real, sor::Real, swc::Real, no::Real)
 """
 function dkrodsw(sw::Real, kro0::Real, sor::Real, swc::Real, no::Real)
+  res=0.0
   if swc<=sw<=1-sor
     res=-no*kro0/(1-sor-swc)*((1-sw-sor)/(1-sor-swc))^(no-1)
   elseif 0.0<sw<swc
@@ -52,6 +55,7 @@ water rel-perm for oil-water system
 krw(sw::Real, krw0::Real, sor::Real, swc::Real, nw::Real)
 """
 function krw(sw::Real, krw0::Real, sor::Real, swc::Real, nw::Real)
+  res=0.0
   if swc<=sw<=1-sor
     res=krw0*((sw-swc)/(1-sor-swc))^nw
   elseif 1-sor<sw<1.0
@@ -69,6 +73,7 @@ derivative of the water relperm with respect to water saturation
 dkrwdsw(sw::Real, krw0::Real, sor::Real, swc::Real, nw::Real)
 """
 function dkrwdsw(sw::Real, krw0::Real, sor::Real, swc::Real, nw::Real)
+  res=0.0
   if swc<=sw<=1-sor
     res=nw*krw0/(1-sor-swc)*((sw-swc)/(1-sor-swc))^(nw-1)
   elseif 1-sor<sw<1.0
@@ -84,6 +89,7 @@ capillary pressure curve for drainage
 pc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e7)
 """
 function pc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e7)
+  res=0.0
   sw0=swc+(1-labda*log(pc0/pce)+sqrt((-1+labda*log(pc0/pce))^2+4*swc/(1-swc)))/2*(1-swc)
   if sw>sw0
     res=pce*((sw-swc)/(1-swc))^(-1.0/labda)
@@ -95,6 +101,7 @@ function pc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0
   else
     res=0.0
   end
+  return res
 end
 
 """
@@ -102,6 +109,7 @@ derivative of the drainage capillary pressure with respect to water saturation
 dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e7)
 """
 function dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e7)
+  res=0.0
   sw0=swc+(1-labda*log(pc0/pce)+sqrt((-1+labda*log(pc0/pce))^2+4*swc/(1-swc)))/2*(1-swc)
   if sw>sw0
     res=-1.0/((1-swc)*labda)*pce*((sw-swc)/(1-swc))^(-1.0/labda-1)
@@ -110,6 +118,7 @@ function dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.
   else
     res=0.0
   end
+  return res
 end
 
 
@@ -118,6 +127,7 @@ second derivative of the drainage capillary pressure with respect to water satur
 dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e7)
 """
 function d2pc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e7)
+  res=0.0
   sw0=swc+(1-labda*log(pc0/pce)+sqrt((-1+labda*log(pc0/pce))^2+4*swc/(1-swc)))/2*(1-swc)
   if sw>sw0
     res=-1.0/((1-swc)^2*labda)*(-1.0/labda-1)*pce*((sw-swc)/(1-swc))^(-1.0/labda-2.0)
@@ -126,6 +136,7 @@ function d2pc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1
   else
     res=0.0
   end
+  return res
 end
 
 """
@@ -171,6 +182,7 @@ capillary pressure curve for drainage
 pc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e6)
 """
 function pc_drain2(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Real=1.0e6)
+  res=0.0
   sw_star=(1-swc)*exp(-labda*log(pc_star/pce))+swc
   pc0 = pc_star*exp(sw_star/(labda*(1-swc)))
   if sw>sw_star
@@ -182,6 +194,7 @@ function pc_drain2(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Rea
   else
     res=0.0
   end
+  return res
 end
 
 """
@@ -190,6 +203,7 @@ derivative of the drainage capillary pressure with respect to water saturation
 dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e6)
 """
 function dpc_drain2(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Real=1.0e6)
+  res=0.0
   sw_star=(1-swc)*exp(-labda*log(pc_star/pce))+swc
   if sw>sw_star
     res=-1.0/((1-swc)*labda)*pce*((sw-swc)/(1-swc))^(-1.0/labda-1.0)
@@ -198,6 +212,7 @@ function dpc_drain2(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Re
   else
     res=0.0
   end
+  return res
 end
 
 """
@@ -233,6 +248,7 @@ pc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e6)
 function pc_drain3(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Real=1.0e6, c::Real=1e-3)
   # pc_max  = pc_max_multiplyer*pc_star
   sw_star=(1-swc)*exp(-labda*log(pc_star/pce))+swc
+  res=0.0
   # m = -pce/(labda*(1-swc))*((sw_star-swc)/(1-swc))^(-1.0/labda-1.0)
   # c = 0.5*(-1.0+sqrt(1.0-(pc_max-pc_star)/(m*(exp(sw_star)-1))))
   b = -pce*c/(labda*(1-swc))*((sw_star-swc)/(1-swc))^(-1.0/labda-1.0)
@@ -247,6 +263,7 @@ function pc_drain3(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Rea
   else
     res=0.0
   end
+  return res
 end
 
 """
@@ -255,6 +272,7 @@ dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e6)
 """
 function dpc_drain3(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Real=1.0e6, c::Real=1e-3)
   sw_star=(1-swc)*exp(-labda*log(pc_star/pce))+swc
+  res=0.0
   b = -pce*c/(labda*(1-swc))*((sw_star-swc)/(1-swc))^(-1.0/labda-1.0)
   a = pc_star + b*exp(c)
   pc0 = a-b*exp(sw_star+c)
@@ -265,6 +283,7 @@ function dpc_drain3(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Re
   else
     res=b/(sw_star+c)
   end
+  return res
 end
 
 """
@@ -272,6 +291,7 @@ second derivative of the drainage capillary pressure with respect to water satur
 dpc_drain(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc0::Real=1.0e6)
 """
 function d2pc_drain3(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::Real=1.0e6, c::Real=1e-3)
+  res=0.0
   sw_star=(1-swc)*exp(-labda*log(pc_star/pce))+swc
   b = -pce*c/(labda*(1-swc))*((sw_star-swc)/(1-swc))^(-1.0/labda-1.0)
   a = pc_star + b*exp(c)
@@ -283,6 +303,7 @@ function d2pc_drain3(sw::Real, pce::Real, swc::Real; labda::Real=2.4, pc_star::R
   else
     res=b/(sw_star+c)^2
   end
+  return res
 end
 
 """

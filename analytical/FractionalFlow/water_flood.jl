@@ -39,6 +39,7 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     xt_s1 = dfw.(s1)
     xt_shock = dfw(sw_shock)
     xt_prf=[xt_s1; xt_shock+eps(); 2*xt_shock]
+    xt_prf[1]=0.0
     sw_prf=[s1; sw_init; sw_init]
 
     xt_tracer = [0.0, xt_tracer_shock, xt_tracer_shock+eps(), xt_prf[end]]
@@ -48,7 +49,7 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     k = core_props.permeability
     krw, kro, dkrw, dkro = rel_perm_functions(rel_perms)
     muo, muw = fluids.oil_viscosity, fluids.water_viscosity
-    
+
     xt = copy(xt_prf)
     sw = copy(sw_prf)
     i=1
@@ -62,12 +63,17 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
             i+=1
         end
     end
-    
-    
+
+
     x = collect(linspace(0,L,200))
     sw_int = Spline1D(ut/phi.*xt, sw, k=1, bc="nearest")
+    println(ut/phi.*xt)
+    println(sw)
     t_inj=pv_inj*pv_to_t
     t = collect(linspace(0.0,t_inj, 200)) # [s] time
+    println(x/t[2])
+
+    println(sw_int.(x/t[2]))
     p_inj = zeros(length(t))
     R_int = zeros(length(t))
     p_inj[1]=L*ut./(k*(kro.(sw_init)/muo+krw.(sw_init)/muw))
