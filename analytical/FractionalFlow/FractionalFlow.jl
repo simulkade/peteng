@@ -142,6 +142,8 @@ struct FracFlowResults
     tracer_profile_xt::Array{Real, 2}
     dp_pv::Array{Real, 2}
     dp_time::Array{Real, 2}
+    water_cut_pv::Array{Real, 2}
+    water_cut_time::Array{Real, 2}
 end
 
 # functions
@@ -292,6 +294,10 @@ function visualize(wf_res::FracFlowResults)
     plot(wf_res.dp_pv[:,1], wf_res.dp_pv[:,2])
     xlabel("Pore volume [-]")
     ylabel("Pressure drop [Pa]")
+    figure()
+    plot(wf_res.water_cut_pv[:,1], wf_res.water_cut_pv[:,2])
+    xlabel("Pore volume [-]")
+    ylabel("Water cut [-]")
     # plot the recovery factors (time)
     # figure()
     # plot(wf_res.recovery_time[:,1], wf_res.recovery_time[:,2])

@@ -27,7 +27,7 @@ function single_ion_adsorption_water_flood_single_shock(core_props, fluids_ls, f
     t_D_BT_hs = (sw_shock_hs-sw_init)/(fw_hs(sw_shock_hs)-fw_hs(sw_init)) # breakthrough (BT) time [#PV]
     # println("high sal breakthrough time = $t_D_BT_hs")
     if t_D_BT_hs<t_D_BT_ls
-        info("Using the single_ion_adsorption_water_flood function.")
+        @info "Using the single_ion_adsorption_water_flood function."
         return single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs,
                 rel_perms_ls, core_flood, eq_const)
     end
@@ -104,7 +104,13 @@ function single_ion_adsorption_water_flood_single_shock(core_props, fluids_ls, f
     muo_hs, muw_hs = fluids_hs.oil_viscosity, fluids_hs.water_viscosity
     λ_ls = s -> krw_ls(s)/muw_ls+kro_ls(s)/muo_ls
     λ_hs = s -> krw_hs(s)/muw_hs+kro_hs(s)/muo_hs
-    λ_t = [λ_ls.(s1); λ_hs(sw_shock); λ_hs(sw_shock); λ_hs(sw_init); λ_hs(sw_init)]
+    # λ_t = [λ_ls.(s1); λ_hs(sw_shock); λ_hs(sw_shock); λ_hs(sw_init); λ_hs(sw_init)]
+    λ_t = [λ_ls.(s1); λ_ls(sw_shock); λ_ls(sw_shock); λ_hs(sw_init); λ_hs(sw_init)]
+    
+    λ_w_ls = s -> krw_ls(s)/muw_ls
+    λ_w_hs = s -> krw_hs(s)/muw_hs
+    # λ_w = [λ_w_ls.(s1); λ_w_hs(sw_shock); λ_w_hs(sw_shock); λ_w_hs(sw_init); λ_w_hs(sw_init)]
+    λ_w = [λ_w_ls.(s1); λ_w_ls(sw_shock); λ_w_ls(sw_shock); λ_w_hs(sw_init); λ_w_hs(sw_init)]
 
     xt = copy(xt_prf)
     sw = copy(sw_prf)
@@ -116,6 +122,7 @@ function single_ion_adsorption_water_flood_single_shock(core_props, fluids_ls, f
             deleteat!(xt, i+1)
             deleteat!(sw, i+1)
             deleteat!(λ_t, i+1)
+            deleteat!(λ_w, i+1)
         else
             i+=1
         end
@@ -124,27 +131,31 @@ function single_ion_adsorption_water_flood_single_shock(core_props, fluids_ls, f
     x = collect(linspace(0,L,200))
     sw_int = Spline1D(ut/phi.*xt, sw, k=1, bc="nearest")
     λ_int = Spline1D(ut/phi.*xt, λ_t, k=1, bc="nearest")
+    λ_w_int = Spline1D(ut/phi.*xt, λ_w, k=1, bc="nearest")
     t_inj=pv_inj*pv_to_t
     t = collect([linspace(0,t_D_BT_hs*pv_to_t, 10); 
                 linspace((t_D_BT_hs+eps())*pv_to_t, t_D_BT_ls*pv_to_t, 40);
                 linspace((t_D_BT_ls+eps())*pv_to_t,t_inj, 100)]) # [s] time
     p_inj = zeros(length(t))
     R_int = zeros(length(t))
+    WC_int = zeros(length(t))
     p_inj[1]=L*ut./(k*λ_hs(sw_init))
+    WC_int[1]=λ_w_hs(sw_init)/λ_hs(sw_init)
     for i in 2:length(t)
         xt_real = x/t[i]
         p_inj[i] = trapz(x, ut./(k*λ_int(xt_real)))
         R_int[i] = (trapz(x, sw_int(xt_real))/L-sw_init)/(1-sw_init)
+        WC_int[i] = λ_w_int(xt_real[end])/λ_int(xt_real[end])
     end
 
-    R_int[R_int.<0.0] = 0.0
+    R_int[R_int.<0.0] .= 0.0
  
 
     return FracFlowResults([fw_hs, fw_ls], [Line([-eq_const, 0.0], [sw_shock_ls, fw_ls(sw_shock_ls)]),
                             Line([sw_init, fw_hs(sw_init)], [sw_shock_hs, fw_hs(sw_shock_hs)]),
                             Line([sw_shock, fw_ls(sw_shock)], [sw_init, fw_hs(sw_init)])],
                             [t/pv_to_t R_int], [t R_int], [xt sw], [xt_tracer c_tracer],
-                            [t/pv_to_t p_inj], [t p_inj])
+                            [t/pv_to_t p_inj], [t p_inj], [t/pv_to_t WC_int], [t WC_int])
     # return pv_R, R, xt_prf, sw_prf # for the time being to test the code
 end
 

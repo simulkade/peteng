@@ -84,12 +84,12 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
   # left boundary pressure gradient
   # BCp.left.a[:]=(krw(sw_in)*lw.xvalue(1,:)+kro(sw_in)*lo.xvalue(1,:)) BCp.left.b[:]=0 BCp.left.c[:]=-u_in
   # change the right boandary to constant pressure (Dirichlet)
-  BCp.left.a[:]=-k0/mu_water_ls
-  BCp.left.b[:]=0
-  BCp.left.c[:]=u_in
-  BCp.right.a[:]=0.0
-  BCp.right.b[:]=1.0
-  BCp.right.c[:]=p0
+  BCp.left.a[:].=-k0/mu_water_ls
+  BCp.left.b[:].=0
+  BCp.left.c[:].=u_in
+  BCp.right.a[:].=0.0
+  BCp.right.b[:].=1.0
+  BCp.right.c[:].=p0
   # BCp.top.a[:]=0.0
   # BCp.top.b[:]=1.0
   # BCp.top.c[:]=p0
@@ -105,9 +105,9 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
   # BCs.right.a[:]=0.0
   # BCs.right.b[:]=1.0
   # BCs.right.c[:]=sw_b
-  BCs.left.a[:]=0.0
-  BCs.left.b[:]=1.0
-  BCs.left.c[:]=sw_in
+  BCs.left.a[:].=0.0
+  BCs.left.b[:].=1.0
+  BCs.left.c[:].=sw_in
   # BCs.top.a[:]=0.0
   # BCs.top.b[:]=1.0
   # BCs.top.c[:]=sw_b
@@ -115,9 +115,9 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
   # BCs.bottom.b[:]=1.0
   # BCs.bottom.c[:]=sw_b
   # Boundary conditions for salinity
-  BCc.left.a[:]=0.0
-  BCc.left.b[:]=1.0
-  BCc.left.c[:]=c_inj
+  BCc.left.a[:].=0.0
+  BCc.left.b[:].=1.0
+  BCc.left.c[:].=c_inj
 
   ## define the time step and solver properties
   # dt = 1000 # [s] time step
@@ -170,7 +170,7 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
 
   while (t<t_end)
   # print("progress is $((t/t_end*100)) %", "\u1b[1G")
-  update!(prog_1, floor(Int, t/t_end*100))
+  ProgressMeter.update!(prog_1, floor(Int, t/t_end*100))
   # Implicit loop
   error_p = 1e5
   error_sw = 1e5
@@ -183,15 +183,15 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
     end
     # calculate parameters
     pgrad = gradientTerm(p)
-    uw = -labdaw.*pgrad
+    uw = -labdaw*pgrad
   #         pcgrad=gradientTerm(pc(sw))
     sw_face = upwindMean(sw, uw) # average value of water saturation
     # sw_ave=arithmeticMean(sw)
     # solve for pressure at known Sw
-    labdao = lo.*faceEval(CF.kro, sw_face, kro0, sor, swc, no)
-    labdaw = lw.*faceEval(CF.krw, sw_face, krw0, sor, swc, nw)
-    dlabdaodsw = lo.*faceEval(CF.dkrodsw, sw_face, kro0, sor, swc, no)
-    dlabdawdsw = lw.*faceEval(CF.dkrwdsw, sw_face, krw0, sor, swc, nw)
+    labdao = lo*faceEval(CF.kro, sw_face, kro0, sor, swc, no)
+    labdaw = lw*faceEval(CF.krw, sw_face, krw0, sor, swc, nw)
+    dlabdaodsw = lo*faceEval(CF.dkrodsw, sw_face, kro0, sor, swc, no)
+    dlabdawdsw = lw*faceEval(CF.dkrwdsw, sw_face, krw0, sor, swc, nw)
     labda = labdao+labdaw
     dlabdadsw = dlabdaodsw+dlabdawdsw
     # compute [Jacobian] matrices
@@ -199,8 +199,8 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
     Mdiffp2 = diffusionTerm(-labdaw)
     # Mconvsw1 = convectionUpwindTerm(-dlabdadsw.*pgrad, uw)
     # Mconvsw2 = convectionUpwindTerm(-dlabdawdsw.*pgrad, uw)
-    Mconvsw1 = convectionUpwindTerm(-dlabdadsw.*pgrad, uw)
-    Mconvsw2 = convectionUpwindTerm(-dlabdawdsw.*pgrad, uw)
+    Mconvsw1 = convectionUpwindTerm(-dlabdadsw*pgrad, uw)
+    Mconvsw2 = convectionUpwindTerm(-dlabdawdsw*pgrad, uw)
     Mtranssw2, RHStrans2 = transientTerm(sw_old, dt, phi)
     # Compute RHS values
     RHS1 = Mconvsw1*sw.value # divergenceTerm(-dlabdadsw.*sw_face.*pgrad)
@@ -212,11 +212,11 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
     M = [Mdiffp1+Mbcp Mconvsw1; Mdiffp2 Mconvsw2+Mtranssw2+Mbcsw]
     RHS = [RHS1+RHSbcp; RHS2+RHStrans2+RHSbcsw]
     x = M\RHS
-    p_new.value[:] = full(x[1:(Nx+2)])
-    sw_new.value[:] = full(x[(Nx+2)+1:end])
+    p_new.value[:] .= (x[1:(Nx+2)])
+    sw_new.value[:] .= (x[(Nx+2)+1:end])
 
-    error_p = maximum(abs.((internalCells(p_new)-internalCells(p))./internalCells(p_new)))
-    error_sw = maximum(abs.(internalCells(sw_new)-internalCells(sw)))
+    error_p = maximum(abs.((internalCells(p_new).-internalCells(p))./internalCells(p_new)))
+    error_sw = maximum(abs.(internalCells(sw_new).-internalCells(sw)))
     # dt_new=dt*min(dp_alwd/error_p, dsw_alwd/error_sw)
     # print("sw_error = $error_sw \n")
     # assign new values of p and sw
@@ -232,12 +232,12 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
   # solve the advection equation
   # ϕ d/dt(c sw)=[sw dc/dt + c dsw/dt]
   dswdt=(sw_new-sw_old)/dt
-  Msc=linearSourceTerm(phi.*dswdt)
-  sw_face = upwindMean(sw, -labdaw.*pgrad) # average value of water saturation
+  Msc=linearSourceTerm(phi*dswdt)
+  sw_face = upwindMean(sw, -labdaw*pgrad) # average value of water saturation
   pgrad = gradientTerm(p_new)
-  labdaw = lw.*faceEval(CF.krw, sw_face, krw0, sor, swc, nw)
-  uw=-labdaw.*pgrad
-  Mtc, RHStc=transientTerm(c_old, dt, phi.*sw)
+  labdaw = lw*faceEval(CF.krw, sw_face, krw0, sor, swc, nw)
+  uw=-labdaw*pgrad
+  Mtc, RHStc=transientTerm(c_old, dt, phi*sw)
   Mbcc, RHSbcc=boundaryConditionTerm(BCc)
   c_temp=copyCell(c_old)
   for j in 1:4
