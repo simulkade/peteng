@@ -66,28 +66,34 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
 
 
     x = collect(linspace(0,L,200))
-    sw_int = Spline1D(ut/phi.*xt, sw, k=1, bc="nearest")
-    println(ut/phi.*xt)
-    println(sw)
+    sw_int = Spline1D(xt, sw, k=1, bc="nearest")
+    # print(sw_int)
+    # println(ut/phi.*xt)
+    # println(sw)
     t_inj=pv_inj*pv_to_t
     t = collect(linspace(0.0,t_inj, 200)) # [s] time
-    println(x/t[2])
+    # println(x/t[2])
 
-    println(sw_int.(x/t[2]))
+    # println(sw_int.(x/t[2]))
     p_inj = zeros(length(t))
     R_int = zeros(length(t))
     WC_int = zeros(length(t))
     p_inj[1]=L*ut./(k*(kro.(sw_init)/muo+krw.(sw_init)/muw))
     WC_int[i] = (krw(sw_init)/muw)/(kro(sw_init)/muo+krw(sw_init)/muw)
     for i in 2:length(t)
-        xt_real = x/t[i]
+        # try
+        xt_real = x/t[i]/(ut/phi)
         p_inj[i] = trapz(x, ut./(k*(kro.(sw_int(xt_real))/muo+krw.(sw_int(xt_real))/muw)))
         R_int[i] = (trapz(x, sw_int(xt_real))/L-sw_init)/(1-sw_init)
         WC_int[i] = (krw(sw_int(xt_real[end]))/muw)/(kro(sw_int(xt_real[end]))/muo+krw(sw_int(xt_real[end]))/muw)
+        # catch
+            # println(x/t[i])
+            # error("interpolator at $i !!!")
+        # end
     end
 
     return FracFlowResults([fw], [Line([sw_init, fw(sw_init)], [sw_shock, fw(sw_shock)])],
-                            [t/pv_to_t R_int], [t R_int], [xt_prf sw_prf], [xt_tracer c_tracer],
+                            [t/pv_to_t R_int], [t R_int], [xt sw], [xt_tracer c_tracer],
                             [t/pv_to_t p_inj], [t p_inj], [t/pv_to_t WC_int], [t WC_int])
     # return pv_R, R, xt_prf, sw_prf # for the time being to test the code
 
