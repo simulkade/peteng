@@ -45,21 +45,21 @@ function water_flood_numeric(core_props, fluids, rel_perms, core_flood; Nx = 30)
     BCs = createBC(m) # Neumann BC for saturation
     BCc = createBC(m) # Neumann BC for salinity
 
-    BCp.left.a[:]=-k0/mu_water
-    BCp.left.b[:]=0
-    BCp.left.c[:]=u_in
+    BCp.left.a[:].=-k0/mu_water
+    BCp.left.b[:].=0
+    BCp.left.c[:].=u_in
 
-    BCp.right.a[:]=0.0
-    BCp.right.b[:]=1.0
-    BCp.right.c[:]=p0
+    BCp.right.a[:].=0.0
+    BCp.right.b[:].=1.0
+    BCp.right.c[:].=p0
 
-    BCs.left.a[:]=0.0
-    BCs.left.b[:]=1.0
-    BCs.left.c[:]=sw_in
+    BCs.left.a[:].=0.0
+    BCs.left.b[:].=1.0
+    BCs.left.c[:].=sw_in
 
-    BCc.left.a[:]=0.0
-    BCc.left.b[:]=1.0
-    BCc.left.c[:]=1.0 # injection concentration
+    BCc.left.a[:].=0.0
+    BCc.left.b[:].=1.0
+    BCc.left.c[:].=1.0 # injection concentration
 
     ## define the time step and solver properties
     t_end = pv_inj*V_core*phi0/(u_in*A_core) # [s] final time
@@ -118,27 +118,27 @@ function water_flood_numeric(core_props, fluids, rel_perms, core_flood; Nx = 30)
             end
             # calculate parameters
             pgrad = gradientTerm(p)
-            uw = -labdaw.*pgrad
+            uw = -labdaw*pgrad
             sw_face = upwindMean(sw, uw) # average value of water saturation
             # sw_ave=arithmeticMean(sw)
             # solve for pressure at known Sw
-            labdao = lo.*faceEval(KRO, sw_face)
-            labdaw = lw.*faceEval(KRW, sw_face)
-            dlabdaodsw = lo.*faceEval(dKRO, sw_face)
-            dlabdawdsw = lw.*faceEval(dKRW, sw_face)
+            labdao = lo*faceEval(KRO, sw_face)
+            labdaw = lw*faceEval(KRW, sw_face)
+            dlabdaodsw = lo*faceEval(dKRO, sw_face)
+            dlabdawdsw = lw*faceEval(dKRW, sw_face)
             labda = labdao+labdaw
             dlabdadsw = dlabdaodsw+dlabdawdsw
             # compute [Jacobian] matrices
             Mdiffp1 = diffusionTerm(-labda)
             Mdiffp2 = diffusionTerm(-labdaw)
-            # Mconvsw1 = convectionUpwindTerm(-dlabdadsw.*pgrad, uw)
-            # Mconvsw2 = convectionUpwindTerm(-dlabdawdsw.*pgrad, uw)
-            Mconvsw1 = convectionUpwindTerm(-dlabdadsw.*pgrad, uw)
-            Mconvsw2 = convectionUpwindTerm(-dlabdawdsw.*pgrad, uw)
+            # Mconvsw1 = convectionUpwindTerm(-dlabdadsw.pgrad, uw)
+            # Mconvsw2 = convectionUpwindTerm(-dlabdawdsw*pgrad, uw)
+            Mconvsw1 = convectionUpwindTerm(-dlabdadsw*pgrad, uw)
+            Mconvsw2 = convectionUpwindTerm(-dlabdawdsw*pgrad, uw)
             Mtranssw2, RHStrans2 = transientTerm(sw_old, dt, phi)
             # Compute RHS values
-            RHS1 = Mconvsw1*sw.value # divergenceTerm(-dlabdadsw.*sw_face.*pgrad)
-            RHS2 = Mconvsw2*sw.value # divergenceTerm(-dlabdawdsw.*sw_face.*pgrad)
+            RHS1 = Mconvsw1*sw.value # divergenceTerm(-dlabdadsw*sw_face*pgrad)
+            RHS2 = Mconvsw2*sw.value # divergenceTerm(-dlabdawdsw*sw_face*pgrad)
             # include boundary conditions
             Mbcp, RHSbcp = boundaryConditionTerm(BCp)
             Mbcsw, RHSbcsw = boundaryConditionTerm(BCs)
@@ -146,8 +146,8 @@ function water_flood_numeric(core_props, fluids, rel_perms, core_flood; Nx = 30)
             M = [Mdiffp1+Mbcp Mconvsw1; Mdiffp2 Mconvsw2+Mtranssw2+Mbcsw]
             RHS = [RHS1+RHSbcp; RHS2+RHStrans2+RHSbcsw]
             x = M\RHS
-            p_new.value[:] = full(x[1:(Nx+2)])
-            sw_new.value[:] = full(x[(Nx+2)+1:end])
+            p_new.value[:] = (x[1:(Nx+2)])
+            sw_new.value[:] = (x[(Nx+2)+1:end])
 
             error_p = maximum(abs.((internalCells(p_new)-internalCells(p))./internalCells(p_new)))
             error_sw = maximum(abs.(internalCells(sw_new)-internalCells(sw)))
@@ -166,12 +166,12 @@ function water_flood_numeric(core_props, fluids, rel_perms, core_flood; Nx = 30)
         # solve the advection equation
         # ϕ d/dt(c sw)=[sw dc/dt + c dsw/dt]
         dswdt=(sw_new-sw_old)/dt
-        Msc=linearSourceTerm(phi.*dswdt)
-        sw_face = upwindMean(sw, -labdaw.*pgrad) # average value of water saturation
+        Msc=linearSourceTerm(phi*dswdt)
+        sw_face = upwindMean(sw, -labdaw*pgrad) # average value of water saturation
         pgrad = gradientTerm(p_new)
-        labdaw = lw.*faceEval(KRW, sw_face)
-        uw=-labdaw.*pgrad
-        Mtc, RHStc=transientTerm(c_old, dt, phi.*sw)
+        labdaw = lw*faceEval(KRW, sw_face)
+        uw=-labdaw*pgrad
+        Mtc, RHStc=transientTerm(c_old, dt, phi*sw)
         Mbcc, RHSbcc=boundaryConditionTerm(BCc)
         c_temp=copyCell(c_old)
         for j in 1:4
@@ -188,7 +188,7 @@ function water_flood_numeric(core_props, fluids, rel_perms, core_flood; Nx = 30)
 
         # update the variables
         t+=dt
-        update!(prog_1, floor(Int, t/t_end*100))
+        ProgressMeter.update!(prog_1, floor(Int, t/t_end*100))
         c_old=copyCell(c_new)
         p_old = copyCell(p)
         sw_old = copyCell(sw)
