@@ -35,7 +35,7 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     ut = core_flood.injection_velocity
     L = core_props.length
     pv_to_t = phi*L/ut
-    s1 = collect(linspace(min(sw_inj, 1-sor-eps()), sw_shock, 100))
+    s1 = collect(linspace(min(sw_inj, 1-sor-eps()), sw_shock, 500))
     xt_s1 = dfw.(s1)
     xt_shock = dfw(sw_shock)
     xt_prf=[xt_s1; xt_shock+eps(); 2*xt_shock]
@@ -57,8 +57,8 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
         if i==length(xt)
             break
         elseif xt[i]>=xt[i+1]
-            deleteat!(xt, i+1)
-            deleteat!(sw, i+1)
+            deleteat!(xt, i)
+            deleteat!(sw, i)
         else
             i+=1
         end
@@ -79,7 +79,7 @@ function water_flood(core_props, fluids, rel_perms, core_flood)
     R_int = zeros(length(t))
     WC_int = zeros(length(t))
     p_inj[1]=L*ut./(k*(kro.(sw_init)/muo+krw.(sw_init)/muw))
-    WC_int[i] = (krw(sw_init)/muw)/(kro(sw_init)/muo+krw(sw_init)/muw)
+    WC_int[1] = (krw(sw_init)/muw)/(kro(sw_init)/muo+krw(sw_init)/muw)
     for i in 2:length(t)
         # try
         xt_real = x/t[i]/(ut/phi)
