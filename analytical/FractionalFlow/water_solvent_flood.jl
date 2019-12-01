@@ -55,7 +55,7 @@ function water_soluble_solvent_flood(core_props, fluids_ls, fluids_hs, rel_perms
     ut = core_flood.injection_velocity
     L = core_props.length
     pv_to_t = phi*L/ut
-    s1 = collect(linspace(min(sw_inj, 1-sor-eps()), sw_shock_ls, 100))
+    s1 = collect(linspace(min(sw_inj, 1-sor-eps()), sw_shock_ls, 300))
     xt_s1 = dfw_ls.(s1)
     xt_shock_ls = 1/t_D_BT_ls
     xt_shock_hs = 1/t_D_BT_hs
@@ -85,19 +85,19 @@ function water_soluble_solvent_flood(core_props, fluids_ls, fluids_hs, rel_perms
         if i==length(xt)
             break
         elseif xt[i]>=xt[i+1]
-            deleteat!(xt, i+1)
-            deleteat!(sw, i+1)
-            deleteat!(λ_t, i+1)
-            deleteat!(λ_w, i+1)
+            deleteat!(xt, i)
+            deleteat!(sw, i)
+            deleteat!(λ_t, i)
+            deleteat!(λ_w, i)
         else
             i+=1
         end
     end
 
     x = collect(linspace(0,L,200))
-    sw_int = Spline1D(ut/phi.*xt, sw, k=1, bc="nearest")
-    λ_int = Spline1D(ut/phi.*xt, λ_t, k=1, bc="nearest")
-    λ_w_int = Spline1D(ut/phi.*xt, λ_w, k=1, bc="nearest")
+    sw_int = Spline1D(xt, sw, k=1, bc="nearest")
+    λ_int = Spline1D(xt, λ_t, k=1, bc="nearest")
+    λ_w_int = Spline1D(xt, λ_w, k=1, bc="nearest")
     t_inj=pv_inj*pv_to_t
     t = collect([linspace(0,t_D_BT_hs*pv_to_t, 10);
                 linspace((t_D_BT_hs+eps())*pv_to_t, t_D_BT_ls*pv_to_t, 40);
@@ -109,7 +109,7 @@ function water_soluble_solvent_flood(core_props, fluids_ls, fluids_hs, rel_perms
     p_inj[1]=L*ut./(k*λ_hs(sw_init))
     WC_int[1]=λ_w_hs(sw_init)/λ_hs(sw_init)
     for i in 2:length(t)
-        xt_real = x/t[i]
+        xt_real = x/t[i]/(ut/phi)
         p_inj[i] = trapz(x, ut./(k*λ_int(xt_real)))
         R_int[i] = (trapz(x, sw_int(xt_real))/L-sw_init)/(1-sw_init)
         WC_int[i] = λ_w_int(xt_real[end])/λ_int(xt_real[end])
