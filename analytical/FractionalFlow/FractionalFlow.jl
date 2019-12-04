@@ -146,6 +146,20 @@ struct FracFlowResults
     water_cut_time::Array{Real, 2}
 end
 
+"""
+Exp_data stores the core flooding experimental data, recovery factor and pressure drop
+    t_exp_dp: time [s] at which the pressure drop is measured
+    dp_exp: pressure drop [Pa] measurements
+    t_exp_R: time at which recovery factor is measured
+    R_exp: recovery factor
+"""
+struct Exp_data
+    t_exp_dp
+    dp_exp
+    t_exp_R
+    R_exp
+end
+
 # functions
 
 """
