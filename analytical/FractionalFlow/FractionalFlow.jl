@@ -468,7 +468,7 @@ function cross_point_saturation(fw, rel_perms, point1, point2; sw_left=0, sw_rig
 end
 
 """
-fint the saturation at the outlet of the core at the end of injection
+find the saturation at the outlet of the core at the end of injection
 """
 function outlet_saturation(pv_inj, sw_shock, dfw, rel_perms)
     eps1 = 1e-2
