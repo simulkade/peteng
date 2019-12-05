@@ -27,7 +27,7 @@ function single_ion_adsorption_water_flood_single_shock(core_props, fluids_ls, f
     t_D_BT_hs = (sw_shock_hs-sw_init)/(fw_hs(sw_shock_hs)-fw_hs(sw_init)) # breakthrough (BT) time [#PV]
     # println("high sal breakthrough time = $t_D_BT_hs")
     if t_D_BT_hs<t_D_BT_ls
-        @info "Using the single_ion_adsorption_water_flood function."
+        # @info "Using the single_ion_adsorption_water_flood function."
         return single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel_perms_hs,
                 rel_perms_ls, core_flood, eq_const)
     end
