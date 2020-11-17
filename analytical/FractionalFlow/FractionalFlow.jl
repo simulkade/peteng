@@ -509,6 +509,25 @@ function trapz(x,y)
             r+=(x[i] - x[i-1])*(y[i] + y[i-1])
         end
         return r/2.0
+end
+
+"""
+function interp1d_linear(x,y, xi) does a linear interpolation using the 
+arrays x and y, based on the specified value xi
+"""
+function interp1d_linear(x, y, xi)
+    if xi<=x[1]
+        return y[1]
+    elseif xi>=x[end]
+        return y[end]
+    else
+        for i in 1:length(x)-1
+            if x[i]<=xi<=x[i+1]
+                m = (y[i+1]-y[i])/(x[i+1]-x[i])
+                return m*(xi-x[i])+y[i]
+            end
+        end
     end
+end
 
 end # module
