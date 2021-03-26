@@ -10,6 +10,7 @@ include("water_solvent_flood.jl")
 include("tertiary_flood.jl")
 include("water_flood_fvm.jl")
 include("water_flood_fvm_upwind.jl")
+include("polymer_flood_fvm_upwind.jl")
 include("water_flood_upwind_BL.jl")
 include("fractional_flow_cases.jl")
 include("HTMLElements.jl")
@@ -20,130 +21,130 @@ CF = CoreyFunctions # a shorter name
 # types:
 """
 Core relative permeability parameters
-    krw0::Real
-    kro0::Real
-    swc::Real
-    sor::Real
-    nw::Real
-    no::Real
+    krw0::Float64
+    kro0::Float64
+    swc::Float64
+    sor::Float64
+    nw::Float64
+    no::Float64
 """
 struct CoreyRelativePermeability
-    krw0::Real
-    kro0::Real
-    swc::Real
-    sor::Real
-    nw::Real
-    no::Real
+    krw0::Float64
+    kro0::Float64
+    swc::Float64
+    sor::Float64
+    nw::Float64
+    no::Float64
 end
 
 """
 The properties of the core are stored in this structure
-    length::Real
-    diameter::Real
-    porosity::Real
-    permeability::Real
+    length::Float64
+    diameter::Float64
+    porosity::Float64
+    permeability::Float64
 """
 struct CoreProperties
-    length::Real
-    diameter::Real
-    porosity::Real
-    permeability::Real
-    surface_area::Real
-    matrix_density::Real
+    length::Float64
+    diameter::Float64
+    porosity::Float64
+    permeability::Float64
+    surface_area::Float64
+    matrix_density::Float64
 end
 
 """
 species concentration
     species::AbstractString
-    molality::Real
+    molality::Float64
 """
 struct SpeciesConcentration
     species::AbstractString
-    concentration::Real
+    concentration::Float64
 end
 
 """
 Defines a brine solution, phreeqc style
     name::AbstractString
     number::Integer
-    temperature::Real
-    pressure::Real
+    temperature::Float64
+    pressure::Float64
     unit::AbstractString
     salinity::Array{SpeciesConcentration, 1}
-    pH::Real
+    pH::Float64
 """
 struct Brine
     name::AbstractString
     number::Integer
-    temperature::Real
-    pressure::Real
+    temperature::Float64
+    pressure::Float64
     unit::AbstractString
     salinity::Array{SpeciesConcentration, 1}
-    pH::Real
-    density::Real
-    viscosity::Real
+    pH::Float64
+    density::Float64
+    viscosity::Float64
 end
 
 struct Oil
-    density::Real
-    viscosity::Real
-    acid_number::Real
-    base_number::Real
-    asphaltene::Real
+    density::Float64
+    viscosity::Float64
+    acid_number::Float64
+    base_number::Float64
+    asphaltene::Float64
 end
 
 
 """
 A structure for storing the core flooding experimental conditions
-    injection_velocity::Real        # m/s
-    injected_pore_volume::Real
-    back_pressure::Real             # Pa
-    initial_water_saturation::Real
-    injected_water_saturation::Real
+    injection_velocity::Float64        # m/s
+    injected_pore_volume::Float64
+    back_pressure::Float64             # Pa
+    initial_water_saturation::Float64
+    injected_water_saturation::Float64
 """
 struct CoreFlooding
-    injection_velocity::Real # m/s
-    injected_pore_volume::Real
-    back_pressure::Real
-    initial_water_saturation::Real
-    injected_water_saturation::Real
+    injection_velocity::Float64 # m/s
+    injected_pore_volume::Float64
+    back_pressure::Float64
+    initial_water_saturation::Float64
+    injected_water_saturation::Float64
 end
 
 """
 a structure that stores the viscosity of the fluids
 """
 struct Fluids
-    oil_viscosity::Real
-    water_viscosity::Real
+    oil_viscosity::Float64
+    water_viscosity::Float64
 end
 
 """
 A line to be used for storing the shock line results
 """
 struct Line
-    start_point::Array{Real,1}
-    end_point::Array{Real,1}
+    start_point::Array{Float64,1}
+    end_point::Array{Float64,1}
 end
 
 """
 A structure that stores the fractional flow curves and the final solution
     fractional_flow_functions::Array{Function, 1}
-    shock_line::Array{Real, 2}
-    recovery_pv::Array{Real, 2}
-    recovery_time::Array{Real, 2}
-    saturation_profile_xt::Array{Real, 2}
+    shock_line::Array{Float64, 2}
+    recovery_pv::Array{Float64, 2}
+    recovery_time::Array{Float64, 2}
+    saturation_profile_xt::Array{Float64, 2}
 """
 struct FracFlowResults
     fractional_flow_functions::Array{Function, 1}
     shock_lines::Array{Line, 1}
-    recovery_pv::Array{Real, 2}
-    recovery_time::Array{Real, 2}
-    saturation_profile_xt::Array{Real, 2}
-    tracer_profile_xt::Array{Real, 2}
-    dp_pv::Array{Real, 2}
-    dp_time::Array{Real, 2}
-    water_cut_pv::Array{Real, 2}
-    water_cut_time::Array{Real, 2}
+    recovery_pv::Array{Float64, 2}
+    recovery_time::Array{Float64, 2}
+    saturation_profile_xt::Array{Float64, 2}
+    tracer_profile_xt::Array{Float64, 2}
+    dp_pv::Array{Float64, 2}
+    dp_time::Array{Float64, 2}
+    water_cut_pv::Array{Float64, 2}
+    water_cut_time::Array{Float64, 2}
 end
 
 """
@@ -528,6 +529,16 @@ function interp1d_linear(x, y, xi)
             end
         end
     end
+end
+
+"""
+myeps returns 1e-15 as the value of eps; for some reason the internal 
+eps() does npt work properly for me:
+example:
+sw+eps()==sw returns true which is not what I want.
+"""
+function myeps()
+    return 1e-15
 end
 
 end # module

@@ -76,13 +76,14 @@ function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel
     ut = core_flood.injection_velocity
     L = core_props.length
     pv_to_t = phi*L/ut
-    s1 = collect(linspace(min(sw_inj, 1-sor-eps()), sw_shock_ls, 300))
+    s1 = collect(linspace(min(sw_inj, 1-sor-myeps()), sw_shock_ls, 300))
     xt_s1 = dfw_ls.(s1)
     xt_shock_ls = 1/t_D_BT_ls
     xt_shock_hs = 1/t_D_BT_hs
-    xt_prf=[xt_s1; xt_shock_ls+eps(); xt_shock_hs; xt_shock_hs+eps(); 1/0.3]
+    # xt_prf=[xt_s1; xt_shock_ls+myeps(); xt_shock_hs; xt_shock_hs+myeps(); 1/0.3]
+    xt_prf=[xt_s1; xt_s1[end]+myeps(); xt_shock_hs; xt_shock_hs+myeps(); 1/0.3]
     sw_prf=[s1; sw_shock_hs; sw_shock_hs; sw_init; sw_init]
-    xt_tracer = [0.0, xt_tracer_shock, xt_tracer_shock+eps(), xt_prf[end]]
+    xt_tracer = [0.0, xt_tracer_shock, xt_tracer_shock+myeps(), xt_prf[end]]
     c_tracer = [1.0, 1.0, 0.0, 0.0]
 
     # extract data for calculating the pressure drop
@@ -120,8 +121,8 @@ function single_ion_adsorption_water_flood(core_props, fluids_ls, fluids_hs, rel
     λ_w_int = Spline1D(xt, λ_w, k=1, bc="nearest")
     t_inj=pv_inj*pv_to_t
     t = collect([linspace(0,t_D_BT_hs*pv_to_t, 10); 
-                linspace((t_D_BT_hs+eps())*pv_to_t, t_D_BT_ls*pv_to_t, 40);
-                linspace((t_D_BT_ls+eps())*pv_to_t,t_inj, 100)]) # [s] time
+                linspace((t_D_BT_hs+myeps())*pv_to_t, t_D_BT_ls*pv_to_t, 40);
+                linspace((t_D_BT_ls+myeps())*pv_to_t,t_inj, 100)]) # [s] time
     p_inj = zeros(length(t))
     R_int = zeros(length(t))
     WC_int = zeros(length(t))
