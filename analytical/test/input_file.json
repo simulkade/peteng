@@ -138,12 +138,6 @@
     },
     "water_flood":{
         "pv": 9.0
-    },
-    "dme_flood":{
-        "pv":5.0
-    },
-    "chase_water_flood":{
-        "pv":2.0
     }
 }
   

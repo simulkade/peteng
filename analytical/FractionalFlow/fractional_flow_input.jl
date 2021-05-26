@@ -23,6 +23,8 @@ function read_frac_flow_input(input_file::AbstractString)
     # slightly fancy with @eval
     rp = [:rel_perm_form, :rel_perm_inj]
     kw = ["formation", "injection"]
+    kr_formation = 0
+    kr_injection = 0
     for i in 1:2
         rel_perm = json_file["core"]["relative_permeability"][kw[i]]
         if rel_perm["type"]=="Corey"
@@ -32,7 +34,11 @@ function read_frac_flow_input(input_file::AbstractString)
             nw = rel_perm["nw"]
             swc = rel_perm["swc"]
             sor = rel_perm["sor"]
-            @eval $(rp[i]) = CoreyRelativePermeability(krw0, kro0, swc, sor, nw, no)
+            if i==1 
+                kr_formation = CoreyRelativePermeability(krw0, kro0, swc, sor, nw, no)
+            else
+                kr_injection = CoreyRelativePermeability(krw0, kro0, swc, sor, nw, no)
+            end
         # elseif [other rel perm types for the future]
         end
     end
