@@ -110,7 +110,7 @@ function dpc_imb(sw::Real, pce::Real, swc::Real, sor::Real; teta::Real=0.785, la
 end
 
 # all rel-perm functions for array Inputs -------------------------------------
-function sws{T<:Real}(sw::Array{T}, sor::Array{T}, swc::Array{T})
+function sws(sw::Array{Float64}, sor::Array{Float64}, swc::Array{Float64})
   res=zeros(size(sw))
   for i in eachindex(sw)
     res[i]=sws(sw[i], sor[i], swc[i])
@@ -118,7 +118,7 @@ function sws{T<:Real}(sw::Array{T}, sor::Array{T}, swc::Array{T})
   return res
 end
 
-function kro{T<:Real}(sw::Array{T}, kro0::Array{T}, sor::Array{T}, swc::Array{T}, no::Array{T})
+function kro(sw::Array{Float64}, kro0::Array{Float64}, sor::Array{Float64}, swc::Array{Float64}, no::Array{Float64})
   res=zeros(size(sw))
   for i in eachindex(sw)
     res[i]=kro(sw[i], kro0[i], sor[i], swc[i], no[i])
@@ -126,7 +126,7 @@ function kro{T<:Real}(sw::Array{T}, kro0::Array{T}, sor::Array{T}, swc::Array{T}
   return res
 end
 
-function dkrodsw{T<:Real}(sw::Array{T}, kro0::Array{T}, sor::Array{T}, swc::Array{T}, no::Array{T})
+function dkrodsw(sw::Array{Float64}, kro0::Array{Float64}, sor::Array{Float64}, swc::Array{Float64}, no::Array{Float64})
   res=zeros(size(sw))
   for i in eachindex(sw)
     res[i]=dkrodsw(sw[i], kro0[i], sor[i], swc[i], no[i])
@@ -134,7 +134,7 @@ function dkrodsw{T<:Real}(sw::Array{T}, kro0::Array{T}, sor::Array{T}, swc::Arra
   return res
 end
 
-function krw{T<:Real}(sw::Array{T}, krw0::Array{T}, sor::Array{T}, swc::Array{T}, nw::Array{T})
+function krw(sw::Array{Float64}, krw0::Array{Float64}, sor::Array{Float64}, swc::Array{Float64}, nw::Array{Float64})
   res=zeros(size(sw))
   for i in eachindex(sw)
     res[i]=krw(sw[i], krw0[i], sor[i], swc[i], nw[i])
@@ -142,7 +142,7 @@ function krw{T<:Real}(sw::Array{T}, krw0::Array{T}, sor::Array{T}, swc::Array{T}
   return res
 end
 
-function dkrwdsw{T<:Real}(sw::Array{T}, krw0::Array{T}, sor::Array{T}, swc::Array{T}, nw::Array{T})
+function dkrwdsw(sw::Array{Float64}, krw0::Array{Float64}, sor::Array{Float64}, swc::Array{Float64}, nw::Array{Float64})
   res=zeros(size(sw))
   for i in eachindex(sw)
     res[i]=dkrwdsw(sw[i], krw0[i], sor[i], swc[i], nw[i])
@@ -150,7 +150,7 @@ function dkrwdsw{T<:Real}(sw::Array{T}, krw0::Array{T}, sor::Array{T}, swc::Arra
   return res
 end
 
-function pc_drain{T<:Real}(sw::Array{T}, pce::Array{T}, swc::Array{T}; labda::Real=2.4)
+function pc_drain(sw::Array{Float64}, pce::Array{Float64}, swc::Array{Float64}; labda::Real=2.4)
   res=zeros(size(sw))
   for i in eachindex(sw)
     res[i]=pc_drain(sw[i], pce[i], swc[i], labda=labda)
@@ -158,7 +158,7 @@ function pc_drain{T<:Real}(sw::Array{T}, pce::Array{T}, swc::Array{T}; labda::Re
   return res
 end
 
-function dpc_drain{T<:Real}(sw::Array{T}, pce::Array{T}, swc::Array{T}; labda::Real=2.4)
+function dpc_drain(sw::Array{Float64}, pce::Array{Float64}, swc::Array{Float64}; labda::Real=2.4)
   res=zeros(size(sw))
   for i in eachindex(sw)
     res[i]=dpc_drain(sw[i], pce[i], swc[i], labda=labda)
@@ -166,8 +166,8 @@ function dpc_drain{T<:Real}(sw::Array{T}, pce::Array{T}, swc::Array{T}; labda::R
   return res
 end
 
-function pc_imb{T<:Real}(sw::Array{T}, pce::Array{T}, swc::Array{T}, sor::Array{T},
-  teta::Array{T}; labda::Real=2.4, b::Real=0.6)
+function pc_imb(sw::Array{Float64}, pce::Array{Float64}, swc::Array{Float64}, sor::Array{Float64},
+  teta::Array{Float64}; labda::Real=2.4, b::Real=0.6)
   res=zeros(size(sw))
   for i in eachindex(sw)
     res[i]=pc_imb(sw[i], pce[i], swc[i], sor[i], teta=teta[i], labda=labda, b=b)
@@ -175,8 +175,8 @@ function pc_imb{T<:Real}(sw::Array{T}, pce::Array{T}, swc::Array{T}, sor::Array{
   return res
 end
 
-function dpc_imb{T<:Real}(sw::Array{T}, pce::Array{T}, swc::Array{T}, sor::Array{T},
-  teta::Array{T}; labda::Real=2.4, b::Real=0.6)
+function dpc_imb(sw::Array{Float64}, pce::Array{Float64}, swc::Array{Float64}, sor::Array{Float64},
+  teta::Array{Float64}; labda::Real=2.4, b::Real=0.6)
   res=zeros(size(sw))
   for i in eachindex(sw)
     res[i]=dpc_imb(sw[i], pce[i], swc[i], sor[i], teta=teta[i], labda=labda, b=b)
