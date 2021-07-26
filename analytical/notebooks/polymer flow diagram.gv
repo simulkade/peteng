@@ -1,0 +1,45 @@
+digraph "polymer flow diagram" {
+	graph [rankdir=LR]
+	gas [label="Natural gas"]
+	raw [label="Raw material"]
+	polymer [label=Polymer]
+	process [label="Polymer
+production" shape=box]
+	pump [label=Pump shape=Mcircle]
+	seawater [label=Seawater]
+	watertreatment [label="Water
+treatment" shape=box]
+	powerplant [label="Gas
+turbine" shape=box]
+	electricity [label=Electricity color=red fontcolor=red style=dashed]
+	water [label=Water color=blue]
+	separator [label="Lift and
+separation
+process"]
+	oil [label=Oil shape=cylinder]
+	water_treatment [label="Water
+treatment" shape=box]
+	reservoir [label=Reservoir color=white fillcolor=black fontcolor=white shape=box3d style=filled]
+	gas -> process
+	gas -> powerplant [color=red style=dashed]
+	raw -> process
+	gas -> process [color=red style=dashed]
+	process -> polymer
+	polymer -> pump
+	seawater -> watertreatment
+	process -> co2 [color=gray style=dotted]
+	powerplant -> co2 [color=gray style=dotted]
+	powerplant -> electricity [color=red style=dashed]
+	electricity -> watertreatment [color=red style=dashed]
+	electricity -> pump [color=red style=dashed]
+	watertreatment -> water
+	water -> pump
+	pump -> reservoir
+	reservoir -> separator
+	separator -> oil
+	separator -> water_treatment
+	electricity -> water_treatment [color=red style=dashed]
+	electricity -> separator [color=red style=dashed]
+	co2 [label="CO2
+emission" fillcolor=gray fontcolor=white style=filled]
+}

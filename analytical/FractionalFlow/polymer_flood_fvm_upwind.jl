@@ -1,16 +1,12 @@
 """
-Low salinity water flooding model
-input:
-  c_insitu: formation brine salinity, Real or Array
-  c_inj: injection brine salinity, Real
-  SW0: initial water saturation
-output:
-  t_sec: production time
-  rec_fact: recovery factor
-  sw: final saturation profile
+Polymer flooding model
+injecting polymer/water mixture into a reservoir
+The adsorption of polymer and change of the injected water viscosity due to the 
+change of concentration is included in the model.
+Note: currently, the adsorption term is not included; it will be added later
 """
-function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_hs,
-  rel_perms_ls, core_flood; pv_inj = 0.3)
+function polymer_implicit_upwind(core_props, fluids_pw, fluids_fw, rel_perms_fw,
+  rel_perms_pw, core_flood; pv_inj = 0.3)
   c_insitu = 1.0
   c_inj = 0
   # pv_inj = 0.3
@@ -33,22 +29,22 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
   # cases
   k0 = core_props.permeability # [m^2] average reservoir permeability
   phi0 = core_props.porosity # average porosity
-  mu_oil_ls = fluids_ls.oil_viscosity # [Pa.s] oil viscosity
-  mu_water_ls = fluids_ls.water_viscosity # [Pa.s] water viscosity
-  mu_oil_hs = fluids_hs.oil_viscosity # [Pa.s] oil viscosity
-  mu_water_hs = fluids_hs.water_viscosity # [Pa.s] water viscosity
-  krw0_ww = rel_perms_ls.krw0
-  krw0_ow = rel_perms_hs.krw0
-  kro0_ww = rel_perms_ls.kro0
-  kro0_ow = rel_perms_hs.kro0
-  nw_ww = rel_perms_ls.nw
-  nw_ow= rel_perms_hs.nw
-  no_ww = rel_perms_ls.no
-  no_ow= rel_perms_hs.no
-  sor_ww=rel_perms_ls.sor
-  sor_ow=rel_perms_hs.sor
-  swc_ww=rel_perms_ls.swc
-  swc_ow=rel_perms_hs.swc
+  mu_oil_pw = fluids_pw.oil_viscosity # [Pa.s] oil viscosity
+  mu_water_pw = fluids_pw.water_viscosity # [Pa.s] water viscosity
+  mu_oil_fw = fluids_fw.oil_viscosity # [Pa.s] oil viscosity
+  mu_water_fw = fluids_fw.water_viscosity # [Pa.s] water viscosity
+  krw0_ww = rel_perms_pw.krw0
+  krw0_ow = rel_perms_fw.krw0
+  kro0_ww = rel_perms_pw.kro0
+  kro0_ow = rel_perms_fw.kro0
+  nw_ww = rel_perms_pw.nw
+  nw_ow= rel_perms_fw.nw
+  no_ww = rel_perms_pw.no
+  no_ow= rel_perms_fw.no
+  sor_ww=rel_perms_pw.sor
+  sor_ow=rel_perms_fw.sor
+  swc_ww=rel_perms_pw.swc
+  swc_ow=rel_perms_fw.swc
 
   # SF0=(c_insitu-C_high_sal)/(C_low_sal-C_high_sal)
   # SF=createFaceVariable(m, SF0) # 1 is water wet, 0 is oil wet
@@ -73,9 +69,14 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
 
   k=createCellVariable(m, perm_val)
   phi=createCellVariable(m, phi0)
-
-  lw = geometricMean(k)/mu_water_ls
-  lo = geometricMean(k)/mu_oil_ls
+  
+  mu_water_pw_cell= createCellVariable(m, mu_water_pw)
+  mu_water_fw_cell= createCellVariable(m, mu_water_fw)
+  mu_water_pw_face= arithmeticMean(mu_water_pw_cell)
+  mu_water_fw_face= arithmeticMean(mu_water_fw_cell)
+  k_face = geometricMean(k)
+  lw = k_face/mu_water_fw_face
+  lo = k_face/mu_oil_fw
 
   ## Define the boundaries: all fixed Sw=1, fixed pressure everywhere(?)
   BCp = createBC(m) # Neumann BC for pressure
@@ -84,7 +85,7 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
   # left boundary pressure gradient
   # BCp.left.a[:]=(krw(sw_in)*lw.xvalue(1,:)+kro(sw_in)*lo.xvalue(1,:)) BCp.left.b[:]=0 BCp.left.c[:]=-u_in
   # change the right boandary to constant pressure (Dirichlet)
-  BCp.left.a[:].=-k0/mu_water_ls
+  BCp.left.a[:].=-k0/mu_water_pw
   BCp.left.b[:].=0
   BCp.left.c[:].=u_in
   BCp.right.a[:].=0.0
@@ -156,6 +157,7 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
   # implicit solver)
   rec_fact=zeros(1)
   c_out_sal=zeros(1)
+  water_cut=zeros(1)
   c_out_sal[1]=c_face.xvalue[end]
   t_sec=zeros(1)
   t = 0.0
@@ -164,6 +166,7 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
   dp_alwd= 100.0 # Pa
   dc_alwd= 0.005
   labdaw=createFaceVariable(m,1.0) # initialize
+  labdao=createFaceVariable(m,1.0) # initialize
   FL=fluxLimiter("SUPERBEE")
 
   prog_1=Progress(100, 1)
@@ -260,6 +263,10 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
   no= no_ww*SF+no_ow*(1-SF)
   nw= nw_ww*SF+nw_ow*(1-SF)
 
+  # Calculate the viscosity
+  mu_w_face = SF*mu_water_pw_face+(1-SF)*mu_water_fw_face
+  lw = k_face/mu_w_face
+
   # adaptive time step
   dp = maximum(abs.((internalCells(p_new)-internalCells(p_old))./internalCells(p_new)))
   dsw = maximum(abs.(internalCells(sw_new)-internalCells(sw_old)))
@@ -276,6 +283,7 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
   push!(rec_fact, (oil_init-domainInt(1-sw))/oil_init)
   push!(t_sec, t)
   push!(c_out_sal, c_face.xvalue[end])
+  push!(water_cut, labdaw.xvalue[end]/(labdaw.xvalue[end]+labdao.xvalue[end]))
 
   # print(t)
   #GR.plot(sw.value[2:end-1])
@@ -292,5 +300,5 @@ function forced_imb_implicit_upwind(core_props, fluids_ls, fluids_hs, rel_perms_
   sw_face = linearMean(sw)
   c_face  = linearMean(c_old)
   x = m.facecenters.x
-  t_sec, pv, rec_fact, x, sw_face.xvalue, c_face.xvalue, c_out_sal
+  t_sec, pv, rec_fact, x, sw_face.xvalue, c_face.xvalue, c_out_sal, water_cut
 end # imb_impes
