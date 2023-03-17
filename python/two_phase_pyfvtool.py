@@ -93,8 +93,6 @@ class ReservoirModel1D:
         BCp = createBC(m)  # Neumann BC for pressure
         BCs = createBC(m)  # Neumann BC for saturation
 
-
-        
         self.pressure_bc = BCp
         self.saturation_bc = BCs
         # self.BC = ...
