@@ -14,14 +14,44 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 class Fluids:
+    """
+    This class represents a model for calculating fluid properties.
+
+    Attributes:
+        water_viscosity (float): Viscosity of water. Default is 0.001 Pa.s.
+        oil_viscosity (float): Viscosity of oil. Default is 0.003 Pa.s.
+    """
     def __init__(self, mu_water=0.001, mu_oil=0.003):
         self.water_viscosity = mu_water
         self.oil_viscosity = mu_oil
 
 
 class RelativePermeability:
-    def __init__(self, swc=0.1, sor=0.05, kro0=0.9, no=2.0,
-                 krw0=0.4, nw=2.0):
+    """
+    This class represents a model for calculating relative permeability values
+    based on water saturation (sw) using the Corey-Brooks model.
+
+    Attributes:
+        swc (float): Connate water saturation. Default is 0.1.
+        sor (float): Residual oil saturation. Default is 0.05.
+        kro0 (float): Oil relative permeability at 100% water saturation. Default is 0.9.
+        no (float): Corey exponent for oil relative permeability. Default is 2.0.
+        krw0 (float): Water relative permeability at 100% water saturation. Default is 0.4.
+        nw (float): Corey exponent for water relative permeability. Default is 2.0.
+    """
+
+    def __init__(self, swc=0.1, sor=0.05, kro0=0.9, no=2.0, krw0=0.4, nw=2.0):
+        """
+        Initializes a new instance of the RelativePermeability class.
+
+        Args:
+            swc (float, optional): Connate water saturation. Default is 0.1.
+            sor (float, optional): Residual oil saturation. Default is 0.05.
+            kro0 (float, optional): Oil relative permeability at 100% water saturation. Default is 0.9.
+            no (float, optional): Corey exponent for oil relative permeability. Default is 2.0.
+            krw0 (float, optional): Water relative permeability at 100% water saturation. Default is 0.4.
+            nw (float, optional): Corey exponent for water relative permeability. Default is 2.0.
+        """
         self.kro0 = kro0
         self.krw0 = krw0
         self.no = no
@@ -30,46 +60,95 @@ class RelativePermeability:
         self.sor = sor
 
     def kro(self, sw):
+        """
+        Calculates the oil relative permeability based on the water saturation.
+
+        Args:
+            sw (float): Water saturation.
+
+        Returns:
+            float: Oil relative permeability.
+        """
         kro0 = self.kro0
         sor = self.sor
         swc = self.swc
         no = self.no
-        res = ((swc <= sw) & (sw <= 1-sor))*kro0*((1-sw-sor)/(1-sor-swc))**no \
-        + ((0.0 < sw) & (sw < swc))*(1+(kro0-1)/swc*sw) \
-        + (sw > 1-sor)*0.0 \
-            + (sw <= 0.0)*1.0
+        res = ((swc <= sw) & (sw <= 1 - sor)) * kro0 * ((1 - sw - sor) / (1 - sor - swc)) ** no \
+              + ((0.0 < sw) & (sw < swc)) * (1 + (kro0 - 1) / swc * sw) \
+              + (sw > 1 - sor) * 0.0 \
+              + (sw <= 0.0) * 1.0
         return res
 
     def krw(self, sw):
+        """
+        Calculates the water relative permeability based on the water saturation.
+
+        Args:
+            sw (float): Water saturation.
+
+        Returns:
+            float: Water relative permeability.
+        """
         krw0, sor, swc, nw = self.krw0, self.sor, self.swc, self.nw
-        res = ((swc <= sw) & (sw <= 1-sor))*krw0*((sw-swc)/(1-sor-swc))**nw \
-        + ((1-sor < sw) & (sw < 1.0))*(-(1-krw0)/sor*(1.0-sw)+1.0) \
-        + (sw <= swc)*0.0 \
-            + (sw >= 1.0)*1.0
+        res = ((swc <= sw) & (sw <= 1 - sor)) * krw0 * ((sw - swc) / (1 - sor - swc)) ** nw \
+              + ((1 - sor < sw) & (sw < 1.0)) * (-(1 - krw0) / sor * (1.0 - sw) + 1.0) \
+              + (sw <= swc) * 0.0 \
+              + (sw >= 1.0) * 1.0
         return res
 
     def dkrodsw(self, sw):
-        krw0, sor, swc, nw = self.krw0, self.sor, self.swc, self.nw
-        res = ((swc <= sw) & (sw <= 1-sor))*(-no*kro0/(1-sor-swc)*((1-sw-sor)/(1-sor-swc))**(no-1)) \
-        + ((0.0 < sw) & (sw < swc))*(kro0-1)/swc \
-            + ((sw > 1-sor) | (sw <= 0.0))*0.0
+        """
+        Calculates the derivative of oil relative permeability with respect to water saturation.
+
+        Args:
+            sw (float): Water saturation.
+
+        Returns:
+            float: Derivative of oil relative permeability with respect to water saturation.
+        """
+        kro0, sor, swc, no = self.kro0, self.sor, self.swc, self.no
+        res = ((swc <= sw) & (sw <= 1 - sor)) * (
+                    -no * kro0 / (1 - sor - swc) * ((1 - sw - sor) / (1 - sor - swc)) ** (no - 1)) \
+              + ((0.0 < sw) & (sw < swc)) * (kro0 - 1) / swc \
+              + ((sw > 1 - sor) | (sw <= 0.0)) * 0.0
         return res
 
     def dkrwdsw(self, sw):
+        """
+        Calculates the derivative of water relative permeability with respect to water saturation.
+
+        Args:
+            sw (float): Water saturation.
+
+        Returns:
+            float: Derivative of water relative permeability with respect to water saturation.
+        """
         krw0, sor, swc, nw = self.krw0, self.sor, self.swc, self.nw
-        res = ((swc <= sw) & (sw <= 1-sor))*nw*krw0/(1-sor-swc)*((sw-swc)/(1-sor-swc))**(nw-1) \
-        + ((1-sor < sw) & (sw < 1.0))*(1-krw0)/sor \
-            + ((sw < swc) | (sw >= 1.0))*0.0
+        res = ((swc <= sw) & (sw <= 1 - sor)) * nw * krw0 / (1 - sor - swc) * ((sw - swc) / (1 - sor - swc)) ** (nw - 1) \
+              + ((1 - sor < sw) & (sw < 1.0)) * (1 - krw0) / sor \
+              + ((sw < swc) | (sw >= 1.0)) * 0.0
         return res
-    
-    def visualise(self):
-       plt.figure()
-       sw_ = np.linspace(0.0, 1.0, 50)
-       plt.plot(sw_, self.krw(sw_), label="Water")
-       plt.plot(sw_, self.kro(sw_), label="Oil")
-       plt.xlabel("Water saturation")
-       plt.ylabel("Relative permeability")
-       plt.legend()
+
+    def visualize(self):
+        """
+        Visualizes the relative permeability curves for water and oil.
+
+        Requires matplotlib.pyplot to be imported as plt.
+
+        Returns:
+            None
+        """
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+        plt.figure()
+        sw_ = np.linspace(0.0, 1.0, 50)
+        plt.plot(sw_, self.krw(sw_), label="Water")
+        plt.plot(sw_, self.kro(sw_), label="Oil")
+        plt.xlabel("Water saturation")
+        plt.ylabel("Relative permeability")
+        plt.legend()
+
 
 
 class Resevoir:
@@ -83,13 +162,37 @@ class Resevoir:
         self.initial_sw = np.maximum(rel_perm.swc, sw_init)
         self.initial_p = pressure_init
 
+class OperationalConditions:
+    """
+    Operational conditions for the reservoir. This includes the injection rate and 
+    injection/production pressures.
+
+    Args:
+        injection_velocity (float, optional): Injection velocity in m/s. Default is 1e-5.
+        injection_pressure (float, optional): Injection pressure in Pa. Default is 100e5.
+        production_pressure (float, optional): Production pressure in Pa. Default is 50e5.
+    """
+    def __init__(self, injection_velocity=1e-5,               
+                 injection_pressure=100e5,                 
+                 production_pressure=50e5):
+        self.injection_rate = injection_velocity
+        self.injection_pressure = injection_pressure
+        self.production_pressure = production_pressure
+        self.active_rate = True
+
 class ReservoirModel1D:
-    def __init__(self, Nx: int, length=300.0,
+    def __init__(self, reservoir: Resevoir, 
+                 Nx: int = 50, 
+                 length: float=300.0,
                  injection_velocity = 1e-5,
                  dp_allowed = 100, dsw_allowed = 0.05,
                  eps_p = 1e-5, eps_sw = 1e-5):
         m = createMesh1D(Nx, length)
         self.domain = m
+        self.perm_field = createCellVariable(m, reservoir.permeability)
+        self.poros_field = createCellVariable(m, reservoir.porosity)
+        lw = geometricMean(k)/mu_water
+        lo = geometricMean(k)/mu_oil
         BCp = createBC(m)  # Neumann BC for pressure
         BCs = createBC(m)  # Neumann BC for saturation
 
@@ -99,11 +202,6 @@ class ReservoirModel1D:
         # self.IC = ...
         # self.
 
-
-# define the geometry
-Nx = 100  # number of cells in x direction
-W = 300  # [m] length of the domain in x direction
-m = createMesh1D(Nx, W)  # creates a 1D mesh
 # define the physical parametrs
 krw0 = 1.0
 kro0 = 0.76
@@ -111,29 +209,29 @@ nw = 2.4
 no = 2.0
 sor = 0.12
 swc = 0.09
-sws = @(sw)((sw > swc).*(sw < 1-sor).*(sw-swc)/(1-sor-swc)+(sw >= 1-sor).*ones(size(sw)))
-kro = @(sw)((sw >= swc).*kro0.*(1-sws(sw)). ^ no+(sw < swc).*(1+(kro0-1)/swc*sw))
-krw = @(sw)((sw <= 1-sor).*krw0.*sws(sw). ^ nw+(sw > 1-sor).*(-(1-krw0)/sor.*(1.0-sw)+1.0))
-dkrwdsw = @(sw)((sw <= 1-sor).*nw.*krw0.*(1/(1-sor-swc)).*sws(sw). ^ (nw-1)+(sw > 1-sor)*((1-krw0)/sor))
-dkrodsw = @(sw)((sw >= swc).*(-kro0*no*(1-sws(sw)). ^ (no-1))/(-swc-sor+1)+(sw < swc).*((kro0-1)/swc))
-p0 = 100e5  # [bar] pressure
-pin = 150e5  # [bar] injection pressure at the left boundary
-u_in = 1.0/(24*3600)  # [m/s] equal to 1 m/day
-sw0 = swc+0.1  # initial water saturation
-sw_in = 1
-mu_oil = 2e-3  # [Pa.s] oil viscosity
-mu_water = 1e-3  # [Pa.s] water viscosity
-# reservoir
+rel_perm = RelativePermeability(krw0=krw0, kro0=kro0, nw=nw, no=no, swc=swc, sor=sor)
+
 k0 = 2e-12  # [m^2] average reservoir permeability
 phi0 = 0.2  # average porosity
-clx = 1.2
-cly = 0.2
-V_dp = 0.7  # Dykstra-Parsons coef.
-perm_val = k0  # field2d(Nx,Ny,k0,V_dp,clx,cly)
-k = createCellVariable(m, perm_val)
-phi = createCellVariable(m, phi0)
-lw = geometricMean(k)/mu_water
-lo = geometricMean(k)/mu_oil
+mu_oil = 2e-3  # [Pa.s] oil viscosity
+mu_water = 1e-3  # [Pa.s] water viscosity
+phases = Fluids(mu_oil=mu_oil, mu_water=mu_water)
+
+p0 = 100e5  # [bar] pressure
+sw0 = swc+0.1  # initial water saturation
+sw_in = 1
+field = Resevoir(rel_perm=rel_perm, fluids=phases, porosity=phi0, permeability=k0, sw_init=sw0, pressure_init=p0)
+
+pin = 150e5  # [bar] injection pressure at the left boundary
+u_in = 1.0/(24*3600)  # [m/s] equal to 1 m/day
+
+# define the geometry
+Nx = 100  # number of cells in x direction
+W = 300  # [m] length of the domain in x direction
+m = createMesh1D(Nx, W)  # creates a 1D mesh
+
+# reservoir
+
 Lw = @(sw)(krw(sw))
 Lo = @(sw)(k/mu_oil*kro(sw))
 dLwdsw = @(sw)(k/mu_water*dkrwdsw(sw))
