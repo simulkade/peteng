@@ -59,7 +59,7 @@ class RelativePermeability:
         self.swc = swc
         self.sor = sor
 
-    def kro(self, sw):
+    def kro(self, sw:np.ndarray) -> np.ndarray:
         """
         Calculates the oil relative permeability based on the water saturation.
 
@@ -73,13 +73,16 @@ class RelativePermeability:
         sor = self.sor
         swc = self.swc
         no = self.no
-        res = ((swc <= sw) & (sw <= 1 - sor)) * kro0 * ((1 - sw - sor) / (1 - sor - swc)) ** no \
-              + ((0.0 < sw) & (sw < swc)) * (1 + (kro0 - 1) / swc * sw) \
-              + (sw > 1 - sor) * 0.0 \
-              + (sw <= 0.0) * 1.0
+        res = np.zeros_like(sw)
+        cond1 = np.logical_and(swc <= sw, sw <= 1 - sor)
+        res[cond1] = kro0 * ((1 - sw[cond1] - sor) / (1 - sor - swc)) ** no
+        cond2 = np.logical_and(0.0 < sw, sw < swc)
+        res[cond2] = 1 + (kro0 - 1) / swc * sw[cond2]
+        res[sw > 1 - sor] = 0.0
+        res[sw <= 0.0] = 1.0
         return res
 
-    def krw(self, sw):
+    def krw(self, sw:np.ndarray) -> np.ndarray:
         """
         Calculates the water relative permeability based on the water saturation.
 
@@ -90,10 +93,13 @@ class RelativePermeability:
             float: Water relative permeability.
         """
         krw0, sor, swc, nw = self.krw0, self.sor, self.swc, self.nw
-        res = ((swc <= sw) & (sw <= 1 - sor)) * krw0 * ((sw - swc) / (1 - sor - swc)) ** nw \
-              + ((1 - sor < sw) & (sw < 1.0)) * (-(1 - krw0) / sor * (1.0 - sw) + 1.0) \
-              + (sw <= swc) * 0.0 \
-              + (sw >= 1.0) * 1.0
+        res = np.zeros_like(sw)
+        cond1 = np.logical_and(swc <= sw, sw <= 1 - sor)
+        res[cond1] = krw0 * ((sw[cond1] - swc) / (1 - sor - swc)) ** nw
+        cond2 = np.logical_and(1 - sor < sw, sw < 1.0)
+        res[cond2] = (-(1 - krw0) / sor * (1.0 - sw[cond2]) + 1.0)
+        res[sw <= swc] = 0.0
+        res[sw >= 1.0] = 1.0
         return res
 
     def dkrodsw(self, sw):
@@ -107,10 +113,13 @@ class RelativePermeability:
             float: Derivative of oil relative permeability with respect to water saturation.
         """
         kro0, sor, swc, no = self.kro0, self.sor, self.swc, self.no
-        res = ((swc <= sw) & (sw <= 1 - sor)) * (
-                    -no * kro0 / (1 - sor - swc) * ((1 - sw - sor) / (1 - sor - swc)) ** (no - 1)) \
-              + ((0.0 < sw) & (sw < swc)) * (kro0 - 1) / swc \
-              + ((sw > 1 - sor) | (sw <= 0.0)) * 0.0
+        res = np.zeros_like(sw)
+        cond1 = np.logical_and(swc <= sw, sw <= 1 - sor)
+        res[cond1] = -no * kro0 / (1 - sor - swc) * ((1 - sw[cond1] - sor) / (1 - sor - swc)) ** (no - 1)
+        cond2 = np.logical_and(0.0 < sw, sw < swc)
+        res[cond2] = (kro0 - 1) / swc
+        res[sw > 1 - sor] = 0.0 
+        res[sw <= 0.0] = 0.0
         return res
 
     def dkrwdsw(self, sw):
@@ -124,9 +133,13 @@ class RelativePermeability:
             float: Derivative of water relative permeability with respect to water saturation.
         """
         krw0, sor, swc, nw = self.krw0, self.sor, self.swc, self.nw
-        res = ((swc <= sw) & (sw <= 1 - sor)) * nw * krw0 / (1 - sor - swc) * ((sw - swc) / (1 - sor - swc)) ** (nw - 1) \
-              + ((1 - sor < sw) & (sw < 1.0)) * (1 - krw0) / sor \
-              + ((sw < swc) | (sw >= 1.0)) * 0.0
+        res = np.zeros_like(sw)
+        cond1 = np.logical_and(swc <= sw, sw <= 1 - sor)
+        res[cond1] = nw * krw0 / (1 - sor - swc) * ((sw[cond1] - swc) / (1 - sor - swc)) ** (nw - 1)
+        cond2 = np.logical_and(1 - sor < sw, sw < 1.0)
+        res[cond2] = (1 - krw0) / sor
+        res[sw < swc] = 0.0
+        res[sw >= 1.0] = 0.0
         return res
 
     def visualize(self):
