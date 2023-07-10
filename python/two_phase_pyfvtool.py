@@ -185,29 +185,53 @@ class OperationalConditions:
         injection_pressure (float, optional): Injection pressure in Pa. Default is 100e5.
         production_pressure (float, optional): Production pressure in Pa. Default is 50e5.
     """
-    def __init__(self, injection_velocity=1e-5,               
-                 injection_pressure=100e5,                 
-                 production_pressure=50e5):
-        self.injection_rate = injection_velocity
+    def __init__(self, injection_velocity: float=1e-5,               
+                 injection_pressure: float=100e5,                 
+                 production_pressure : float=50e5,
+                 injection_sw = 1.0,
+                 active_rate= True):
+        self.injection_velocity = injection_velocity
         self.injection_pressure = injection_pressure
         self.production_pressure = production_pressure
-        self.active_rate = True
+        self.active_rate = active_rate
+        self.injection_sw = injection_sw
 
-class ReservoirModel1D:
-    def __init__(self, reservoir: Resevoir, 
+class CoreModel1D:
+    def __init__(self, 
+                 reservoir: Resevoir,
+                 operational_conditions: OperationalConditions, 
                  Nx: int = 50, 
-                 length: float=300.0,
-                 injection_velocity = 1e-5,
+                 length: float=6.0e-2,
+                 diameter: float=2.5e-2,
                  dp_allowed = 100, dsw_allowed = 0.05,
                  eps_p = 1e-5, eps_sw = 1e-5):
         m = createMesh1D(Nx, length)
+        self.pore_volume = reservoir.porosity * length * np.pi * (diameter/2)**2
+        self.injection_velocity = operational_conditions.injection_velocity
+        self.dp_allowed = dp_allowed
+        self.dsw_allowed = dsw_allowed
+        self.eps_p = eps_p
+        self.eps_sw = eps_sw
         self.domain = m
         self.perm_field = createCellVariable(m, reservoir.permeability)
         self.poros_field = createCellVariable(m, reservoir.porosity)
-        lw = geometricMean(k)/mu_water
-        lo = geometricMean(k)/mu_oil
+        self.water_mobility_max = geometricMean(self.perm_field)/mu_water
+        self.oil_mobility_max = geometricMean(self.perm_field)/mu_oil
+        
         BCp = createBC(m)  # Neumann BC for pressure
+        # back pressure boundary condition
+        BCp.right.a[:] = 0.0
+        BCp.right.b[:] = 1.0
+        BCp.right.c[:] = operational_conditions.production_pressure
+        # injection boundary
+        BCp.left.a[:] = self.water_mobility_max[0]
+        BCp.left.b[:] = 0.0
+        BCp.left.c[:] = -operational_conditions.injection_velocity
+        # saturation left boundary
         BCs = createBC(m)  # Neumann BC for saturation
+        BCs.left.a[:] = 0.0
+        BCs.left.b[:] = 1.0
+        BCs.left.c[:] = reservoir.initial_sw
 
         self.pressure_bc = BCp
         self.saturation_bc = BCs
@@ -215,7 +239,7 @@ class ReservoirModel1D:
         # self.IC = ...
         # self.
 
-# define the physical parametrs
+# define relative permeability parametrs
 krw0 = 1.0
 kro0 = 0.76
 nw = 2.4
@@ -224,19 +248,26 @@ sor = 0.12
 swc = 0.09
 rel_perm = RelativePermeability(krw0=krw0, kro0=kro0, nw=nw, no=no, swc=swc, sor=sor)
 
-k0 = 2e-12  # [m^2] average reservoir permeability
-phi0 = 0.2  # average porosity
+# define fluid properties
 mu_oil = 2e-3  # [Pa.s] oil viscosity
 mu_water = 1e-3  # [Pa.s] water viscosity
 phases = Fluids(mu_oil=mu_oil, mu_water=mu_water)
 
+# define reservoir properties
+k0 = 2e-12  # [m^2] average reservoir permeability
+phi0 = 0.2  # average porosity
 p0 = 100e5  # [bar] pressure
 sw0 = swc+0.1  # initial water saturation
 sw_in = 1
-field = Resevoir(rel_perm=rel_perm, fluids=phases, porosity=phi0, permeability=k0, sw_init=sw0, pressure_init=p0)
+field = Resevoir(rel_perm=rel_perm, fluids=phases, porosity=phi0, permeability=k0, 
+                 sw_init=sw0, pressure_init=p0)
 
+# define operational conditions
 pin = 150e5  # [bar] injection pressure at the left boundary
 u_in = 1.0/(24*3600)  # [m/s] equal to 1 m/day
+p_back = p0  # [bar] production (back) pressure at the right boundary
+op_cond = OperationalConditions(injection_velocity=u_in, 
+                                injection_pressure=pin, production_pressure=p_back)
 
 # define the geometry
 Nx = 100  # number of cells in x direction
