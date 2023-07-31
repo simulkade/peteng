@@ -262,6 +262,7 @@ class CoreModel1D:
     
     def simulate(self, final_time = 100000.0, dt = 1000.0):
         t = 0.0
+        Nxyz = np.prod(self.domain.dims)
         while t < final_time:
             error_p = 1e5
             error_sw = 1e5
@@ -290,10 +291,23 @@ class CoreModel1D:
                 M = vstack([hstack([Mdiffp1 + Mbcp, Mconvsw1]), hstack([Mdiffp2, Mconvsw2 + Mtranssw2 + Mbcsw])])
                 RHS = vstack([RHS1 + RHSbcp, RHS2 + RHStrans2 + RHSbcsw])
                 x = spsolve(M, RHS)
-                p_new = createCellVariable(self.domain, np.reshape(x[0:(Nx + 2)]))
-                sw_new = createCellVariable(self.domain, np.reshape(x[(Nx + 2):]))
+                p_new = np.reshape(x[0:(Nxyz + 2)])
+                sw_new = np.reshape(x[(Nxyz + 2):])
                 error_p = max(abs((p_new - self.pressure.value[:]) / p_new))
-                error_sw = max(abs(sw_new - self.sat
+                error_sw = max(abs(sw_new - self.saturation.value[:]))
+                self.pressure.value[:] = p_new
+                self.saturation.value[:] = sw_new
+            if loop_count > 10:
+                self.pressure.value[:] = self.initial_pressure.value[:]
+                self.saturation.value[:] = self.initial_sw.value[:]
+                dt = dt/5
+                continue
+            
+            dsw = np.max(abs(sw_new[:]-self.initial_sw.value[:])/sw_new[:])
+            t+=dt
+            dt = np.min([dt*(self.dsw_allowed/dsw), 2*dt, final_time-t])
+            self.initial_pressure.value[:] = self.pressure.value[:]
+            self.initial_sw.value[:] = self.saturation.value[:]
 
 if __name__ == "__main__":
     # define relative permeability parametrs
@@ -332,8 +346,8 @@ if __name__ == "__main__":
     m = createMesh1D(Nx, W)  # creates a 1D mesh
 
     # reservoir
-
-    # Lw = @(sw)(krw(sw))
+    core = CoreModel1D(field=field, mesh=m, operational_conditions=op_cond)
+    core.simulate(final_time=2*3600., dt=100.)
     # Lo = @(sw)(k/mu_oil*kro(sw))
     # dLwdsw = @(sw)(k/mu_water*dkrwdsw(sw))
     # dLodsw = @(sw)(k/mu_oil*dkrodsw(sw))
